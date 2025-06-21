@@ -9,8 +9,13 @@ public abstract class TestBase : IDisposable
     protected TestBase()
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddStatePulseServices();
-        services.ScanStatePulseAssemblies(typeof(TestBase));
+        services.AddStatePulseServices(o =>
+        {
+            o.ScanAssemblies = new Type[] {
+                typeof(TestBase)
+            };
+
+        });
 
         // Register your services
         ServiceProvider = services.BuildServiceProvider();

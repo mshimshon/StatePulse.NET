@@ -6,17 +6,17 @@ namespace StatePulse.Net;
 public static class ServiceRegisterExt
 {
     private static bool _scanned;
-    private static ConfigureOptions _configureOptions;
+    private static ConfigureOptions _configureOptions = new ConfigureOptions();
     /// <summary>
     /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
     /// </summary>
     /// <param name="services"></param>
-    public static void AddStatePulseServices(this IServiceCollection services, Func<ConfigureOptions, ConfigureOptions> configure)
+    public static void AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
     {
         // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
-        _configureOptions = configure.Invoke(new ConfigureOptions());
+        configure(new ConfigureOptions());
         services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
     }
 
