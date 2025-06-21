@@ -1,5 +1,5 @@
-﻿[![](https://img.[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
-shields.io/nuget/v/StatePulse.NET?label=Latest)](https://www.nuget.org/packages/StatePulse.NET) 
+﻿[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![](https://img.shields.io/shields.io/nuget/v/StatePulse.NET?label=Latest)](https://www.nuget.org/packages/StatePulse.NET) 
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
 
 # StatePulse.NET
