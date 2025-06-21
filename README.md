@@ -16,7 +16,6 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 
 ## 📦 Installation & Setup
 
----
 
 
 ```
@@ -35,7 +34,6 @@ services.ScanStatePulseAssemblies();
 
 ## 🧭 How It Works
 
----
 
 
 ### **Define Actions**:
