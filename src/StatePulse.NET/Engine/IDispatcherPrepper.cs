@@ -1,6 +1,4 @@
-﻿using StatePulse.Net.Validation;
-
-namespace StatePulse.Net.Engine;
+﻿namespace StatePulse.Net.Engine;
 public interface IDispatcherPrepper<TAction> where TAction : IAction
 {
     TAction ActionInstance { get; }

@@ -1,5 +1,4 @@
 ﻿using StatePulse.Net;
-using StatePulse.Net.Validation;
 
 namespace StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions.Validators;
 internal class ProfileCardDefineActionValidator : IActionValidator<ProfileCardDefineAction>

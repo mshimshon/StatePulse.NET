@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StatePulse.NET\StatePulse.NET.csproj" />
+    <ProjectReference Include="..\..\src\StatePulse.NET\StatePulse.NET.csproj" />
   </ItemGroup>
 
   <ItemGroup>

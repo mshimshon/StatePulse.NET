@@ -1,4 +1,4 @@
-﻿namespace StatePulse.Net.Validation;
+﻿namespace StatePulse.Net;
 public class ValidationResult
 {
     private readonly List<ValidationError> _errors = new();
