@@ -10,16 +10,22 @@
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
-	  <Copyright>Maksim Shimshon c 2025</Copyright>
+	  <Copyright>Maksim Shimshon © 2025</Copyright>
 	  <Product>StatePulse.NET</Product>
 	  <Company />
 	  <Authors>Maksim Shimshon</Authors>
 	  <Version>0.9.0</Version>
 	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
+	  <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

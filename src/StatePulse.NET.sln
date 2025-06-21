@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.NET.Tests", "..\tests\StatPulse.NET.Tests\StatePulse.NET.Tests.csproj", "{07ED17B2-BD3A-94F4-FA85-43E768FAF9F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.NET", "StatePulse.NET\StatePulse.NET.csproj", "{001E330A-2F3E-D401-1119-2C5AEC9243AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07ED17B2-BD3A-94F4-FA85-43E768FAF9F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07ED17B2-BD3A-94F4-FA85-43E768FAF9F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07ED17B2-BD3A-94F4-FA85-43E768FAF9F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07ED17B2-BD3A-94F4-FA85-43E768FAF9F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {581738A4-3D44-4B10-82D9-9C70125D0CDD}
+	EndGlobalSection
+EndGlobal
