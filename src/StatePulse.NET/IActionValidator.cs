@@ -8,5 +8,5 @@ namespace StatePulse.Net;
 /// <typeparam name="TAction"></typeparam>
 public interface IActionValidator<in TAction> where TAction : IAction
 {
-    ValidationResult Validate(TAction action);
+    void Validate(TAction action, ref ValidationResult result);
 }

@@ -1,4 +1,4 @@
-﻿namespace StatePulse.Net.Internal.Implementations;
+﻿namespace StatePulse.Net.Engine.Implementations;
 internal class StateAccessor<TState> : IStateAccessor<TState> where TState : class
 {
     public StateAccessor()

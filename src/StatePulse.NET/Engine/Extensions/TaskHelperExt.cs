@@ -1,4 +1,4 @@
-﻿namespace StatePulse.Net.Internal.Extensions;
+﻿namespace StatePulse.Net.Engine.Extensions;
 internal static class TaskHelperExt
 {
     public static async Task RunWithAsyncLocal<T>(this AsyncLocal<T> asyncLocal, T value, Func<Task> func)

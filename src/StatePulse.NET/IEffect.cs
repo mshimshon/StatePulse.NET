@@ -7,5 +7,5 @@
 public interface IEffect<TAction>
     where TAction : IAction
 {
-    Task EffectAsync(TAction action, IDispatcher dispatcher, Guid chainKey);
+    Task EffectAsync(TAction action, IDispatcher dispatcher);
 }

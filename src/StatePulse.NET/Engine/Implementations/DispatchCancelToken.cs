@@ -1,4 +1,4 @@
-﻿namespace StatePulse.Net.Internal.Implementations;
+﻿namespace StatePulse.Net.Engine.Implementations;
 internal record DispatchCancelToken()
 {
     private bool _isDispose = false;

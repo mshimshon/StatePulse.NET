@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net;
+using StatePulse.Net.Validation;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
@@ -32,7 +33,7 @@ public class StatePulseInitTests : TestBase
         };
         // Dispatch action that changes state
         var action = new ProfileCardDefineAction();
-        await dispatcher.Prepare(() => action).UsingSynchronousMode().DispatchFastAsync();
+        await dispatcher.Prepare(() => action).UsingSynchronousMode().DispatchAsync();
 
         Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
     }
@@ -43,26 +44,109 @@ public class StatePulseInitTests : TestBase
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
-        var action = new ProfileCardDefineAction();
-        await dispatcher.Prepare<MainMenuOpenAction>().UsingSynchronousMode().DispatchFastAsync();
+        await dispatcher.Prepare<MainMenuOpenAction>().UsingSynchronousMode().DispatchAsync();
 
         Assert.NotEmpty(stateAccessor.State.NavigationItems ?? new());
+    }
+
+    [Theory]
+    [InlineData("Test")]
+    [InlineData("Error")]
+    public async Task DispatchingEffectShouldCorrectlyFailActionValidator(string name)
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        // Dispatch action that changes state
+        ValidationResult? validation = default;
+        await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
+            .HandleActionValidation(p => validation = p)
+            .UsingSynchronousMode()
+            .DispatchAsync();
+
+        Assert.True(validation != default);
+        Assert.True(validation.IsValid && name != "Error" || !validation.IsValid && name == "Error");
     }
 
     [Fact]
     public async Task DispatchingBurstShouldTriggerSafetyCancel()
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var tracker = ServiceProvider.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
-        var action = new ProfileCardDefineAction();
-
-        for (int i = 0; i < 10; i++)
+        int changes = 0;
+        stateAccessor.StateChanged += (s, state) =>
         {
-            await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, "Trigger 1").DispatchSafeAsync();
-            await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, "Trigger 2").UsingSynchronousMode().DispatchSafeAsync();
-            Assert.Equal("Trigger 2", stateAccessor.State.ProfileName);
+            changes++;
+        };
+        Guid a = Guid.Empty, b = Guid.Empty;
+        bool cont = false, aDone = false, bDone = false;
+        tracker.OnCancel += (o, action) =>
+        {
+            if (action.Id == a) aDone = true;
+            if (action.Id == b) bDone = true;
+            if (aDone && bDone) cont = true;
+        };
+        List<string> result = new();
+        for (int i = 0; i < 100; i++)
+        {
+            a = await dispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 1")
+                .DispatchAsync(true);
 
+            b = await dispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 2")
+                .DispatchAsync(true);
+
+            while (!cont) { await Task.Delay(100); }
+            cont = false;
+            result.Add(stateAccessor.State.ProfileName!);
         }
+        foreach (var item in result)
+            Assert.Equal("Profile 2", item);
+
+    }
+
+    [Fact]
+    public async Task DispatchingBurstShouldTriggerInconsistentResults()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var tracker = ServiceProvider.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
+        // Dispatch action that changes state
+        int changes = 0;
+        stateAccessor.StateChanged += (s, state) =>
+        {
+            changes++;
+        };
+
+        List<string> result = new();
+        for (int i = 0; i < 25; i++)
+        {
+            var a = dispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 1")
+                .UsingSynchronousMode()
+                .DispatchAsync();
+
+
+            var b = dispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 2")
+                .UsingSynchronousMode()
+                .DispatchAsync();
+            await Task.WhenAll(a, b);
+            result.Add(stateAccessor.State.ProfileName!);
+        }
+        int inConsistenceCount = 0;
+        string lastEntry = string.Empty;
+        foreach (var item in result)
+        {
+            if (lastEntry != item && lastEntry != string.Empty)
+            {
+                inConsistenceCount++;
+            }
+            lastEntry = item;
+        }
+        Assert.True(inConsistenceCount > 0);
+
     }
 }

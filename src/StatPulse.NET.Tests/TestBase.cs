@@ -10,7 +10,7 @@ public abstract class TestBase : IDisposable
     {
         IServiceCollection services = new ServiceCollection();
         services.AddStatePulseServices();
-        services.AddStatePulseScan(typeof(TestBase));
+        services.ScanStatePulseAssemblies(typeof(TestBase));
 
         // Register your services
         ServiceProvider = services.BuildServiceProvider();

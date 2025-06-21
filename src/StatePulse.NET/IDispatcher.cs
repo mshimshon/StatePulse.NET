@@ -1,4 +1,4 @@
-﻿using StatePulse.Net.Internal;
+﻿using StatePulse.Net.Engine;
 
 namespace StatePulse.Net;
 /// <summary>
@@ -6,6 +6,6 @@ namespace StatePulse.Net;
 /// </summary>
 public interface IDispatcher
 {
-    IDispatcherPrepper<TAction> Prepare<TAction>(params object[] constructor);
-    IDispatcherPrepper<TAction> Prepare<TAction>(Func<TAction> createInstance);
+    IDispatcherPrepper<TAction> Prepare<TAction>(params object[] constructor) where TAction : IAction;
+    IDispatcherPrepper<TAction> Prepare<TAction>(Func<TAction> createInstance) where TAction : IAction;
 }

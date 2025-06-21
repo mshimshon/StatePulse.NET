@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using StatePulse.Net.Internal.Implementations;
+using StatePulse.Net.Engine.Implementations;
 
 namespace StatePulse.Net;
 public static class ServiceRegisterExt
@@ -10,7 +10,9 @@ public static class ServiceRegisterExt
     /// <param name="services"></param>
     public static void AddStatePulseServices(this IServiceCollection services)
     {
-        services.AddSingleton<IDispatcher, Dispatcher>();
+        // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
+        services.AddTransient<IDispatcher, Dispatcher>();
+        services.AddTransient<IDispatchFactory, DispatchFactory>();
     }
 
     /// <summary>
@@ -18,12 +20,13 @@ public static class ServiceRegisterExt
     /// </summary>
     /// <param name="services"></param>
     /// <param name="assemblies"></param>
-    public static void AddStatePulseScan(this IServiceCollection services, params Type[] assemblies)
+    public static void ScanStatePulseAssemblies(this IServiceCollection services, params Type[] assemblies)
     {
         var effectType = typeof(IEffect<>);
         var reducerType = typeof(IReducer<,>);
         var stateFeatureType = typeof(IStateFeature);
         var actionType = typeof(IAction);
+        var actionSafeType = typeof(ISafeAction);
         var actionValidatorType = typeof(IActionValidator<>);
         var registry = new StatePulseRegistry();
         foreach (var assembly in assemblies)
@@ -68,8 +71,14 @@ public static class ServiceRegisterExt
                         continue;
                     }
 
-                    if (!iface.IsGenericType && iface == actionType)
-                        registry.RegisterAction(actionType);
+                    if (!iface.IsGenericType && (iface == actionType || iface == actionSafeType))
+                    {
+                        registry.RegisterAction(type);
+                        // Add Action Based Singleton Dispatch Tracker.
+                        var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(type);
+                        var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(type);
+                        services.AddSingleton(dispatchTrackerIface, dispatchTracker);
+                    }
                 }
             }
         }

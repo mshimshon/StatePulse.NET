@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace StatePulse.Net.Internal.Extensions;
+namespace StatePulse.Net.Engine.Extensions;
 internal static class ReflectionExt
 {
     public static KeyValuePair<Expression<Func<TEntity, TValue>>, TValue> PropSetToKeyPair<TEntity, TValue>(Expression<Func<TEntity, TValue>> property, TValue value)

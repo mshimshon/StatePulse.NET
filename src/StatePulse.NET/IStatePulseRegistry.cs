@@ -11,9 +11,5 @@ public interface IStatePulseRegistry
     void RegisterReducer(Type reducerType);
     void RegisterAction(Type actionType);
     void RegisterActionValidator(Type actionValType);
-    void TrackDispatch(Type action, object instance, Guid id);
-    void UntrackDispatch(Type action, object instance);
-    void CancelDispatch(Type action);
-    bool IsDispatchCancelled(Guid id);
 
 }

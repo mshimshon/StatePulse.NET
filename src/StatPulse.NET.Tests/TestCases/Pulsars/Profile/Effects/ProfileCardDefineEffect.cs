@@ -12,16 +12,16 @@ internal class ProfileCardDefineEffect : IEffect<ProfileCardDefineAction>
     {
         _stateAccessor = stateAccessor;
     }
-    public async Task EffectAsync(ProfileCardDefineAction action, IDispatcher dispatcher, Guid chainKey)
+    public async Task EffectAsync(ProfileCardDefineAction action, IDispatcher dispatcher)
     {
-        await dispatcher.Prepare<ProfileCardLoaderStartAction>().DispatchSafeAsync(chainKey);
+        await dispatcher.Prepare<ProfileCardLoaderStartAction>().DispatchAsync();
         var random = new Random();
         int value = random.Next(100, 1001); // Upper bound is exclusive, so use 1001
 
         await Task.Delay(value);
         var myProfile = new UserResponse();
-        await dispatcher.Prepare(() => new ProfileCardDefineResultAction(action.TestData ?? myProfile.Name, myProfile.Picture, myProfile.Id)).DispatchFastAsync();
-        await dispatcher.Prepare<ProfileCardLoaderStopAction>().DispatchFastAsync();
+        await dispatcher.Prepare(() => new ProfileCardDefineResultAction(action.TestData ?? myProfile.Name, myProfile.Picture, myProfile.Id)).DispatchAsync();
+        await dispatcher.Prepare<ProfileCardLoaderStopAction>().DispatchAsync();
     }
 
 }
