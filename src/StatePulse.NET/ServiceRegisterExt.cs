@@ -1,18 +1,23 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using StatePulse.Net.Configuration;
 using StatePulse.Net.Engine.Implementations;
 
 namespace StatePulse.Net;
 public static class ServiceRegisterExt
 {
+    private static bool _scanned;
+    private static ConfigureOptions _configureOptions;
     /// <summary>
     /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
     /// </summary>
     /// <param name="services"></param>
-    public static void AddStatePulseServices(this IServiceCollection services)
+    public static void AddStatePulseServices(this IServiceCollection services, Func<ConfigureOptions, ConfigureOptions> configure)
     {
         // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
+        _configureOptions = configure.Invoke(new ConfigureOptions());
+        services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
     }
 
     /// <summary>
@@ -20,8 +25,11 @@ public static class ServiceRegisterExt
     /// </summary>
     /// <param name="services"></param>
     /// <param name="assemblies"></param>
-    public static void ScanStatePulseAssemblies(this IServiceCollection services, params Type[] assemblies)
+    private static void ScanStatePulseAssemblies(this IServiceCollection services, params Type[] assemblies)
     {
+        if (_scanned) return;
+        _scanned = true;
+
         var effectType = typeof(IEffect<>);
         var reducerType = typeof(IReducer<,>);
         var stateFeatureType = typeof(IStateFeature);
@@ -59,7 +67,10 @@ public static class ServiceRegisterExt
                     {
                         var accessorType = typeof(IStateAccessor<>).MakeGenericType(type);
                         var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(type);
-                        services.AddSingleton(accessorType, accessorImplementationType);  // Registering the correct interface
+                        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+                            services.AddScoped(accessorType, accessorImplementationType);  // Registering the correct interface
+                        else
+                            services.AddSingleton(accessorType, accessorImplementationType);  // Registering the correct interface
                         registry.RegisterState(type);
                         continue;
                     }
@@ -77,7 +88,11 @@ public static class ServiceRegisterExt
                         // Add Action Based Singleton Dispatch Tracker.
                         var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(type);
                         var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(type);
-                        services.AddSingleton(dispatchTrackerIface, dispatchTracker);
+                        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+                            services.AddScoped(dispatchTrackerIface, dispatchTracker);
+                        else
+                            services.AddSingleton(dispatchTrackerIface, dispatchTracker);
+
                     }
                 }
             }
