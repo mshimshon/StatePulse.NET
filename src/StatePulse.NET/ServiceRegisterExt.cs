@@ -11,13 +11,14 @@ public static class ServiceRegisterExt
     /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
     /// </summary>
     /// <param name="services"></param>
-    public static void AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
+    public static IServiceCollection AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
     {
         // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
-        configure(new ConfigureOptions());
+        configure(_configureOptions);
         services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
+        return services;
     }
 
     /// <summary>

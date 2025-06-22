@@ -114,7 +114,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
                 // Trigger Reducer
                 if (reducerService != default)
                 {
-                    var stateProperty = stateService.GetType().GetProperty(nameof(IStateAccessor<object>.State))!;
+                    var stateProperty = stateService.GetType().GetProperty(nameof(IStateController<object>.State))!;
                     var method = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
                     var task = (Task)method.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
                     await task.ConfigureAwait(true);

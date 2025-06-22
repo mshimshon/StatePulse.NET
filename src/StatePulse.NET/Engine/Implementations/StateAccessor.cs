@@ -1,5 +1,5 @@
 ﻿namespace StatePulse.Net.Engine.Implementations;
-internal class StateAccessor<TState> : IStateAccessor<TState> where TState : class
+internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<TState> where TState : IStateFeature
 {
     public StateAccessor()
     {
@@ -15,11 +15,12 @@ internal class StateAccessor<TState> : IStateAccessor<TState> where TState : cla
             if (value == null) InitializeState();
             else _state = value;
             StateChanged?.Invoke(this, _state);
-
+            StateChangedNoDetails?.Invoke(this, new EventArgs());
         }
     }
 
-    public event EventHandler<TState>? StateChanged;
+    public event OnChangeEventHandler<TState>? StateChanged;
+    public event EventHandler? StateChangedNoDetails;
 
     private void InitializeState()
     {
