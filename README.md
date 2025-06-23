@@ -25,6 +25,23 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 - **Transient `IPulse` Service:** Each component gets its own `IPulse` instance, isolating event subscriptions and making state updates scoped and efficient.
 
 
+## 📦 Installation & Setup
+
+
+```
+Install-Package StatePulse.Net
+
+dotnet add package StatePulse.Net
+
+```
+
+```csharp
+services.AddStatePulseServices();
+services.ScanStatePulseAssemblies();
+```
+
+
+
 ## Use of StatePulse.Net.Blazor
 
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net.Blazor)](https://www.nuget.org/packages/StatePulse.Net.Blazor)
@@ -55,21 +72,6 @@ public partial class CounterView : ComponentBase
     // Or to create a basecomponent system similar to other state management systems.
     [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
 }
-```
-
-## 📦 Installation & Setup
-
-
-```
-Install-Package StatePulse.Net
-
-dotnet add package StatePulse.Net
-
-```
-
-```csharp
-services.AddStatePulseServices();
-services.ScanStatePulseAssemblies();
 ```
 
 
