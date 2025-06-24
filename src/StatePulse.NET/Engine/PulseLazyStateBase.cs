@@ -1,13 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿
+using Microsoft.Extensions.DependencyInjection;
 
-namespace StatePulse.Net.Blazor.Engine.Implementation;
+namespace StatePulse.Net.Engine;
 internal abstract class PulseLazyStateBase : IStatePulse
 {
     private bool _disposed;
     private readonly IServiceProvider _services;
     private readonly IPulseGlobalTracker _globalStash;
     private WeakReference<object?> _instance = new WeakReference<object?>(default);
-    private Func<Task> _instanceCallbackOnChange;
+    private WeakReference<Func<Task>> _listener;
     public PulseLazyStateBase(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -24,11 +25,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
         var type = typeof(TState);
         // Something Blazor does not clear resources so to avoid duplicate
         if (!_instance.TryGetTarget(out var target) || !ReferenceEquals(target, instance))
-        {
             _instance = new(instance);
-
-
-        }
         if (GetState().TryGetValue(type, out var existing))
             return ((IStateAccessor<TState>)existing).State;
         else
@@ -45,7 +42,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
             return accessor.State;
         }
     }
-    public bool IsReferenceAlive() => _instance.TryGetTarget(out object? _);
+    public bool IsReferenceAlive() => _instance.TryGetTarget(out var _);
     public void SelfDisposeCheck()
     {
         if (!IsReferenceAlive())
@@ -62,28 +59,8 @@ internal abstract class PulseLazyStateBase : IStatePulse
             Dispose();
             return;
         }
-
-        _instanceCallbackOnChange?.Invoke();
-
-
-        // TODO:
-        //Console.WriteLine(sender!.GetType()!);
-        //var invokeAsyncMethod = typeof(ComponentBase).GetMethod(
-        //    "InvokeAsync",
-        //    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-        //    null,
-        //    new[] { typeof(Action) },
-        //    null
-        //);
-
-        //invokeAsyncMethod?.Invoke(target, [new Action(() =>
-        //{
-        //    var method = typeof(ComponentBase).GetMethod(
-        //        "StateHasChanged",
-        //        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic
-        //    );
-        //    method?.Invoke(target, null);
-        //})]);
+        if (_listener.TryGetTarget(out var listener))
+            listener?.Invoke();
     }
     public void Dispose()
     {
@@ -96,7 +73,13 @@ internal abstract class PulseLazyStateBase : IStatePulse
     }
 
     public TState StateOf<TState>(object instance, Func<Task> onStateChanged) where TState : IStateFeature
-        => throw new NotImplementedException();
-    public TState ManualInitializerFor<TState>(object instance, Func<Task> onStateChanged) where TState : IStateFeature
-        => throw new NotImplementedException();
+    {
+        InitializeListennerAsync(instance, onStateChanged).GetAwaiter().GetResult();
+        return StateOf<TState>(instance);
+    }
+    public virtual Task InitializeListennerAsync(object instance, Func<Task> onStateChanged)
+    {
+        _listener = new WeakReference<Func<Task>>(onStateChanged);
+        return Task.CompletedTask;
+    }
 }
