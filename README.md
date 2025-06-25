@@ -16,13 +16,13 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 - 🧪 **Synchronous Debug Mode** — Optional lockstep mode for testing, diagnostics, and `Task.WhenAll` pipelines.
 - 🧵 **DispatchTracker** — High-performance cancellation and deduplication logic via optimized concurrent tracking.
 
-### 🚀 **Blazor-Specific State Management with Zero Boilerplate and Zero Compromises**
+### 🚀 **State Management with Zero Boilerplate and Zero Compromises**
 
-- **Lazy State Access Model:** Inject `IPulse` directly into your Blazor component and call `StateOf<TState>(this)` to get scoped state access.  
+- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this,()=>InvokeAsync(StateHasChanged))` to get scoped state access.  
 - **Component-Scoped Event Listening:** Automatically registers event listeners only for that component, ensuring `StateHasChanged()` is called exclusively on components subscribed to state changes.  
 - **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.  
 - **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.  
-- **Transient `IPulse` Service:** Each component gets its own `IPulse` instance, isolating event subscriptions and making state updates scoped and efficient.
+- **Transient `IStatePulse` Service:** Each component gets its own `IStatePulse` instance, isolating event subscriptions and making state updates scoped and efficient.
 
 
 ## 📦 Installation & Setup
