@@ -5,6 +5,6 @@ namespace StatePulse.Net.Tests.App.Components.Layout;
 public partial class NavMenu
 {
     [Inject] IStatePulse PulseState { get; set; } = default!;
-    private CounterState State => PulseState.StateOf<CounterState>(this, () => InvokeAsync(StateHasChanged));
+    private CounterState State => PulseState.StateOf<CounterState>(() => this, () => InvokeAsync(StateHasChanged));
 
 }

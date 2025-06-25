@@ -1,9 +1,8 @@
-## StatePulse.Net v0.9.3
+## StatePulse.Net v0.9.21
 - Implement the Blazor Package and removed dependencies to Blazor ComponentBase which is no longer required... 
-- Any objects within .NET can now use IPulse and benefit from state management without extra implementations.
-- Added InitializeAsync where you can called in oninitialize blazor to define InvokeAsync(()=>StateHasChanged).
-- Added a Lazy Alternative where you skip the boilerplate and call StateOf<>() where you can also define the InvokeAsync.
-- The InitializeAsync and StateOf<>() are usable by any object to start listening and stop listening when caller dies.
+- Any objects within .NET can now use IStatePulse and benefit from state management without extra implementations.
+- Renamed IPulse to IStatePulse
+- using IStatePulse.StateOf<>(()=>this, () => InvokeAsync(StateHasChanged));
 
 
 ## Blazor Packages v0.9.2
