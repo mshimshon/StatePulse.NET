@@ -42,4 +42,13 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
 	</ItemGroup>
+
+    <Target Name="CopyNuPkg" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+	    <MakeDir Directories="..\..\..\..\nupkgs" />
+	    <ItemGroup>
+		    <PackageFiles Include="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" />
+	    </ItemGroup>
+	    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="..\..\..\..\nupkgs" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    </Target>
+	
 </Project>
