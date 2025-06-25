@@ -1,10 +1,7 @@
 ﻿namespace StatePulse.Net;
 public interface IStatePulse : IDisposable
 {
-    TState StateOf<TState>(object instance) where TState : IStateFeature;
-
-    TState StateOf<TState>(object instance, Func<Task> onStateChanged) where TState : IStateFeature;
-    Task InitializeListennerAsync(object instance, Func<Task> onStateChanged);
+    TState StateOf<TState>(Func<object> getInstance, Func<Task> onStateChanged) where TState : IStateFeature;
     bool IsReferenceAlive();
     void SelfDisposeCheck();
 

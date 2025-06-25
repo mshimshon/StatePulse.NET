@@ -8,7 +8,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
     private readonly IServiceProvider _services;
     private readonly IPulseGlobalTracker _globalStash;
     private WeakReference<object?> _instance = new WeakReference<object?>(default);
-    private WeakReference<Func<Task>> _listener;
+    private WeakReference<Func<Task>> _listener = default!;
     public PulseLazyStateBase(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -20,8 +20,9 @@ internal abstract class PulseLazyStateBase : IStatePulse
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
     protected virtual IDictionary<Type, IStateAccessor<object>> GetState() => throw new NotImplementedException();
-    public TState StateOf<TState>(object instance) where TState : IStateFeature
+    private TState StateOf<TState>(Func<object> getInstance) where TState : IStateFeature
     {
+        var instance = getInstance();
         var type = typeof(TState);
         // Something Blazor does not clear resources so to avoid duplicate
         if (!_instance.TryGetTarget(out var target) || !ReferenceEquals(target, instance))
@@ -72,14 +73,10 @@ internal abstract class PulseLazyStateBase : IStatePulse
 
     }
 
-    public TState StateOf<TState>(object instance, Func<Task> onStateChanged) where TState : IStateFeature
+    public TState StateOf<TState>(Func<object> getInstance, Func<Task> onStateChanged) where TState : IStateFeature
     {
-        InitializeListennerAsync(instance, onStateChanged).GetAwaiter().GetResult();
-        return StateOf<TState>(instance);
-    }
-    public virtual Task InitializeListennerAsync(object instance, Func<Task> onStateChanged)
-    {
+        var instance = getInstance();
         _listener = new WeakReference<Func<Task>>(onStateChanged);
-        return Task.CompletedTask;
+        return StateOf<TState>(() => instance);
     }
 }
