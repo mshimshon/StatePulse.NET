@@ -16,13 +16,13 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 - 🧪 **Synchronous Debug Mode** — Optional lockstep mode for testing, diagnostics, and `Task.WhenAll` pipelines.
 - 🧵 **DispatchTracker** — High-performance cancellation and deduplication logic via optimized concurrent tracking.
 
-### 🚀 **Blazor-Specific State Management with Zero Boilerplate and Zero Compromises**
+### 🚀 **State Management with Zero Boilerplate and Zero Compromises**
 
-- **Lazy State Access Model:** Inject `IPulse` directly into your Blazor component and call `StateOf<TState>(this)` to get scoped state access.  
+- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this,()=>InvokeAsync(StateHasChanged))` to get scoped state access.  
 - **Component-Scoped Event Listening:** Automatically registers event listeners only for that component, ensuring `StateHasChanged()` is called exclusively on components subscribed to state changes.  
 - **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.  
 - **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.  
-- **Transient `IPulse` Service:** Each component gets its own `IPulse` instance, isolating event subscriptions and making state updates scoped and efficient.
+- **Transient `IStatePulse` Service:** Each component gets its own `IStatePulse` instance, isolating event subscriptions and making state updates scoped and efficient.
 
 
 ## 📦 Installation & Setup
@@ -39,42 +39,6 @@ dotnet add package StatePulse.Net
 services.AddStatePulseServices();
 services.ScanStatePulseAssemblies();
 ```
-
-
-
-## Use of StatePulse.Net.Blazor
-
-[![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net.Blazor)](https://www.nuget.org/packages/StatePulse.Net.Blazor)
-[![](https://img.shields.io/nuget/dt/StatePulse.Net.Blazor?label=Downloads)](https://www.nuget.org/packages/StatePulse.Net.Blazor)
-
-The water is already boiling guys... inject and enjoy!
-
-```
-Install-Package StatePulse.Net.Blazor
-
-dotnet add package StatePulse.Net.Blazor
-
-```
-
-```csharp
-using StatePulse.Net.Blazor;
-
-public partial class CounterView : ComponentBase
-{
-
-    // METHOD 1:
-    [Inject] public IPulse PulseState { get; set; } = default!; // Handles State Accessor
-    // This is for convienience so in your component you only use @state.Value instead of PulseState.StateOf<CounterState>(this).Value
-    private CounterState state => PulseState.StateOf<CounterState>(this);
-
-    // METHOD 2: 
-    // Inject direct state but injecting the state directly requires you to handle onchanged events but sub/unsub in lifecycle
-    // Or to create a basecomponent system similar to other state management systems.
-    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
-}
-```
-
-
 
 ## 🧭 How It Works
 
@@ -191,7 +155,7 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
 
 
 ### Important Notes
-- Rule of thumb is always await dispatch calls avoiding to do so can cause inconsistency for safe dispatch modes..
+- Rule of thumb is always await dispatch calls, avoiding to do so can cause inconsistency for safe dispatch mode..
 - ISafeAction implementations are always dispatched safely, ignoring unsafe flags.
 - synchronous is an anti-pattern of statemanement use it sparingly; it is primarily for debugging or specific scenarios requiring full completion before continuation.
 
@@ -199,5 +163,25 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
 
 ```csharp
 var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
-// See Above for Blazor Support
+```
+
+## Blazor Example Usage
+
+```csharp
+using StatePulse.Net;
+
+public partial class CounterView : ComponentBase
+{
+
+    // METHOD 1:
+    [Inject] public IStatePulse PulseState { get; set; } = default!; // Handles State Accessor
+
+    // This is for convienience so in your component you only use @state.Value instead of PulseState.StateOf<CounterState>(this).Value
+    private CounterState state => PulseState.StateOf<CounterState>(()=>this, ()=>InvokeAsync(StateHadChanged));
+
+    // METHOD 2: 
+    // Inject direct state but injecting the state directly requires you to handle onchanged events but sub/unsub in lifecycle
+    // Or to create a basecomponent system similar to other state management systems.
+    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
+}
 ```

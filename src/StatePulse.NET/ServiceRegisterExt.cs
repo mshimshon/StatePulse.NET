@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net.Configuration;
+using StatePulse.Net.Engine;
 using StatePulse.Net.Engine.Implementations;
 
 namespace StatePulse.Net;
@@ -17,6 +18,14 @@ public static class ServiceRegisterExt
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
         configure(_configureOptions);
+
+        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+            services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
+        else
+            services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
+
+        services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
+        services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
         services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
         return services;
     }

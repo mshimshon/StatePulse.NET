@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using StatePulse.Net.Blazor;
-namespace StatePulse.Net.Tests.App;
+﻿namespace StatePulse.Net.Tests.App;
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
@@ -16,7 +14,6 @@ public static class MauiProgram
         {
             o.ScanAssemblies = new Type[] { typeof(MauiProgram) };
         });
-        builder.Services.AddStatePulseBlazor();
         builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using StatePulse.Net.Blazor.Engine;
 using StatePulse.Net.Blazor.Engine.Implementation;
 
 namespace StatePulse.Net.Blazor;
@@ -10,11 +9,11 @@ public static class ServiceRegisterExt
         services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         if (wasm)
         {
-            services.AddTransient<IPulse, PulseLazyStateWebAssembly>();
+            services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
         }
         else
         {
-            services.AddTransient<IPulse, PulseLazyStateBlazorServer>();
+            services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
         }
         return services;
     }

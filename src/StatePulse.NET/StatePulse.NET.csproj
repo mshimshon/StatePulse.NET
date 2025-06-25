@@ -14,7 +14,7 @@
 	  <Product>StatePulse.NET</Product>
 	  <Company />
 	  <Authors>Maksim Shimshon</Authors>
-	  <Version>0.9.2</Version>
+	  <Version>0.9.3</Version>
 	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
@@ -42,4 +42,13 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
 	</ItemGroup>
+
+    <Target Name="CopyNuPkg" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+	    <MakeDir Directories="..\..\..\..\nupkgs" />
+	    <ItemGroup>
+		    <PackageFiles Include="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" />
+	    </ItemGroup>
+	    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="..\..\..\..\nupkgs" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    </Target>
+	
 </Project>
