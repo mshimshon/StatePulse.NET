@@ -140,11 +140,13 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
     }
 
-    public IDispatcherPrepper<TAction> UsingSynchronousMode()
+    public IDispatcherPrepper<TAction> Sync()
     {
         _forceSyncronous = true;
         return this;
     }
+    public IDispatcherPrepper<TAction> UsingSynchronousMode() => Sync();
+
     public IDispatcherPrepper<TAction> HandleActionValidation(Action<ValidationResult> validationResult)
     {
         _validationErrorCallback = validationResult;
