@@ -18,7 +18,7 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 
 ### 🚀 **State Management with Zero Boilerplate and Zero Compromises**
 
-- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this,()=>InvokeAsync(StateHasChanged))` to get scoped state access.  
+- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this, TaskMethod)` to get scoped state access.  
 - **Component-Scoped Event Listening:** Automatically registers event listeners only for that component, ensuring `StateHasChanged()` is called exclusively on components subscribed to state changes.  
 - **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.  
 - **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.  
@@ -36,8 +36,10 @@ dotnet add package StatePulse.Net
 ```
 
 ```csharp
-services.AddStatePulseServices();
-services.ScanStatePulseAssemblies();
+services.AddStatePulseServices(o =>
+        {
+            o.ScanAssemblies = new Type[] { typeof(Program) };
+        });
 ```
 
 ## 🧭 How It Works
