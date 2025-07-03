@@ -5,22 +5,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>StatePulse.NET</Title>
-	  <AssemblyName>StatePulse.Net</AssemblyName>
-	  <RootNamespace>StatePulse.Net</RootNamespace>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
-	  <PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
-	  <Copyright>Maksim Shimshon © 2025</Copyright>
-	  <Product>StatePulse.NET</Product>
-	  <Company />
-	  <Authors>Maksim Shimshon</Authors>
-	  <Version>0.9.3</Version>
-	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
-	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
-	  <PackageIcon>icon.png</PackageIcon>
-	  <PackageTags>blazor;state management;flux;dotnet;redux;components;webassembly</PackageTags>
-
+	<AssemblyName>StatePulse.Net</AssemblyName>
+	<RootNamespace>StatePulse.Net</RootNamespace>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
+	<Copyright>Maksim Shimshon © 2025</Copyright>
+	<Product>StatePulse.NET</Product>
+	<Company />
+	<Authors>Maksim Shimshon</Authors>
+	<Version>0.9.3</Version>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	<Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
+	<PackageIcon>icon.png</PackageIcon>
+	<PackageTags>blazor;state management;flux;dotnet;redux;components;webassembly</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

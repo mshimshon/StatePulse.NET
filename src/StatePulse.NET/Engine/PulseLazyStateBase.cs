@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
+using StatePulse.Net.Engine.Extensions;
+using System.Reflection;
 
 namespace StatePulse.Net.Engine;
 internal abstract class PulseLazyStateBase : IStatePulse
@@ -8,7 +10,8 @@ internal abstract class PulseLazyStateBase : IStatePulse
     private readonly IServiceProvider _services;
     private readonly IPulseGlobalTracker _globalStash;
     private WeakReference<object?> _instance = new WeakReference<object?>(default);
-    private WeakReference<Func<Task>> _listener = default!;
+    private Func<object, Task> _compiledListener = default!;
+    private MethodInfo _methodListener = default!;
     public PulseLazyStateBase(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -24,7 +27,6 @@ internal abstract class PulseLazyStateBase : IStatePulse
     {
         var instance = getInstance();
         var type = typeof(TState);
-        // Something Blazor does not clear resources so to avoid duplicate
         if (!_instance.TryGetTarget(out var target) || !ReferenceEquals(target, instance))
             _instance = new(instance);
         if (GetState().TryGetValue(type, out var existing))
@@ -60,8 +62,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
             Dispose();
             return;
         }
-        if (_listener.TryGetTarget(out var listener))
-            listener?.Invoke();
+        _compiledListener(target);
     }
     public void Dispose()
     {
@@ -76,7 +77,8 @@ internal abstract class PulseLazyStateBase : IStatePulse
     public TState StateOf<TState>(Func<object> getInstance, Func<Task> onStateChanged) where TState : IStateFeature
     {
         var instance = getInstance();
-        _listener = new WeakReference<Func<Task>>(onStateChanged);
+        _methodListener = onStateChanged.GetMethodInfoOrThrow();
+        _compiledListener = _methodListener.CreateDynamicInvoker();
         return StateOf<TState>(() => instance);
     }
 }
