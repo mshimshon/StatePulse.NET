@@ -1,5 +1,6 @@
 ## v0.9.4
 - Breaking Change, StateOf no longer accept lambda will throw exception you must define a Task directly... this was necessary due to Garbage Collector and tracking behavior.
+- Deprecated UsingSynchronousMode() instead use Sync().
 
 ## v0.9.21
 - Implement the Blazor Package and removed dependencies to Blazor ComponentBase which is no longer required... 
