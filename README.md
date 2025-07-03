@@ -146,7 +146,7 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
 
 // You can trigger synchronously... this will await the whole pipeline, otherwise you just await until action is send to dispatch pool.
 await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-    .UsingSynchronousMode()
+    .Sync()
     .DispatchAsync();
 
 // if the action is implementing ISafeState, the dispatch will always run asSafe=true but an action not implementing ISafeAction will
