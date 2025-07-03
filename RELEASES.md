@@ -1,3 +1,6 @@
+## v0.9.41
+- Fix: Added Anti-Service duplication to avoid double triggers.
+
 ## v0.9.4
 - Breaking Change, StateOf no longer accept lambda will throw exception you must define a Task directly... this was necessary due to Garbage Collector and tracking behavior.
 - Deprecated UsingSynchronousMode() instead use Sync().

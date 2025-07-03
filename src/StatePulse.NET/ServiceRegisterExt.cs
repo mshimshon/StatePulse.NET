@@ -61,6 +61,8 @@ public static class ServiceRegisterExt
                 {
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == effectType)
                     {
+                        if (services.IsEffectImplementationRegistered(type)) continue;
+
                         services.AddTransient(iface, type);
                         registry.RegisterEffect(type);
                         continue;
@@ -68,6 +70,7 @@ public static class ServiceRegisterExt
 
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == reducerType)
                     {
+                        if (services.IsReducerRegistered(iface)) continue;
                         services.AddTransient(iface, type);
                         registry.RegisterReducer(type);
                         continue;
@@ -77,6 +80,8 @@ public static class ServiceRegisterExt
                     {
                         var accessorType = typeof(IStateAccessor<>).MakeGenericType(type);
                         var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(type);
+
+                        if (services.IsStateAccessorRegistered(accessorImplementationType)) continue;
                         if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
                             services.AddScoped(accessorType, accessorImplementationType);  // Registering the correct interface
                         else
@@ -87,6 +92,7 @@ public static class ServiceRegisterExt
 
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == actionValidatorType)
                     {
+                        if (services.IsActionValidatorImplementationRegistered(type)) continue;
                         services.AddTransient(iface, type);
                         registry.RegisterActionValidator(type);
                         continue;
@@ -94,10 +100,11 @@ public static class ServiceRegisterExt
 
                     if (!iface.IsGenericType && (iface == actionType || iface == actionSafeType))
                     {
-                        registry.RegisterAction(type);
                         // Add Action Based Singleton Dispatch Tracker.
                         var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(type);
                         var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(type);
+                        if (services.IsDispatchTrackerRegistered(dispatchTracker)) continue;
+                        registry.RegisterAction(type);
                         if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
                             services.AddScoped(dispatchTrackerIface, dispatchTracker);
                         else
@@ -111,5 +118,65 @@ public static class ServiceRegisterExt
         services.AddSingleton<IStatePulseRegistry>(registry);
 
 
+    }
+    public static bool IsReducerRegistered(this IServiceCollection services, Type reducerType)
+    {
+        return services.Any(s => s.ServiceType == reducerType);
+    }
+    public static bool IsEffectImplementationRegistered(this IServiceCollection services, Type implementationType)
+    {
+        return services.Any(s =>
+            s.ImplementationType == implementationType &&
+            s.ServiceType.IsGenericType &&
+            s.ServiceType.GetGenericTypeDefinition() == typeof(IEffect<>)
+        );
+    }
+    public static bool IsActionValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)
+    {
+        return services.Any(s =>
+            s.ImplementationType == implementationType &&
+            s.ServiceType.IsGenericType &&
+            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionValidator<>)
+        );
+    }
+
+    public static bool IsDispatchTrackerRegistered(this IServiceCollection services, Type implementationType)
+    {
+        if (!implementationType.IsGenericType) return false;
+
+        var interfaces = implementationType.GetInterfaces()
+            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDispatchTracker<>));
+
+        foreach (var iface in interfaces)
+        {
+            if (services.Any(s =>
+                s.ServiceType == iface &&
+                s.ImplementationType == implementationType))
+            {
+                return true; // Found match
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsStateAccessorRegistered(this IServiceCollection services, Type implementationType)
+    {
+        if (!implementationType.IsGenericType) return false;
+
+        var interfaces = implementationType.GetInterfaces()
+            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IStateAccessor<>));
+
+        foreach (var iface in interfaces)
+        {
+            if (services.Any(s =>
+                s.ServiceType == iface &&
+                s.ImplementationType == implementationType))
+            {
+                return true; // Found match
+            }
+        }
+
+        return false;
     }
 }
