@@ -176,12 +176,18 @@ public partial class CounterView : ComponentBase
     // METHOD 1:
     [Inject] public IStatePulse PulseState { get; set; } = default!; // Handles State Accessor
 
-    // This is for convienience so in your component you only use @state.Value instead of PulseState.StateOf<CounterState>(this).Value
-    private CounterState state => PulseState.StateOf<CounterState>(()=>this, ()=>InvokeAsync(StateHadChanged));
+    // This is for convienience always use this method or directly PulseState.StateOf<CounterState>(this).Value
+    // Never assign State Instance variable as it will not update... 
+    // Never use lambda it will throw exception as WeakREference is fundamatally flawed and disposes of lambda even when its object is alive.
+    private CounterState state => PulseState.StateOf<CounterState>(()=>this, OnUpdate);
+    
+    private async Task OnUpdate() => await InvokeAsync(StateHadChanged);
 
     // METHOD 2: 
-    // Inject direct state but injecting the state directly requires you to handle onchanged events but sub/unsub in lifecycle
+    // Inject direct state but injecting the state directly requires you to handle onchanged events by sub/unsub in lifecycle
     // Or to create a basecomponent system similar to other state management systems.
     [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
+
+    
 }
 ```
