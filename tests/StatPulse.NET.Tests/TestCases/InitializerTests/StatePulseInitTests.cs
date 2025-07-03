@@ -103,7 +103,7 @@ public class StatePulseInitTests : TestBase
         }
         foreach (var item in result)
             Assert.Equal("Profile 2", item);
-
+        Assert.True(result.Count > 0);
     }
 
     [Fact]
