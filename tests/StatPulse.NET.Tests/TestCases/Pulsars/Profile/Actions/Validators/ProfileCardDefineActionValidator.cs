@@ -1,11 +1,13 @@
 ﻿using StatePulse.Net;
+using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Effects;
 
 namespace StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions.Validators;
-internal class ProfileCardDefineActionValidator : IActionValidator<ProfileCardDefineAction>
+internal class ProfileCardDefineActionValidator : IActionValidator<ProfileCardDefineAction, ProfileCardDefineEffect>
 {
-    public void Validate(ProfileCardDefineAction action, ref ValidationResult result)
+    public Task<bool> Validate(ProfileCardDefineAction action)
     {
         if (action.TestData == "Error")
-            result.AddError("ErrorName", "Name Cannot be Error");
+            return Task.FromResult(false);
+        return Task.FromResult(true);
     }
 }

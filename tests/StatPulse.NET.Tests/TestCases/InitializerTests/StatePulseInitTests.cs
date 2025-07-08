@@ -56,14 +56,9 @@ public class StatePulseInitTests : TestBase
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
-        ValidationResult? validation = default;
         await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-            .HandleActionValidation(p => validation = p)
-            .UsingSynchronousMode()
-            .DispatchAsync();
+            .Sync().DispatchAsync();
 
-        Assert.True(validation != default);
-        Assert.True(validation.IsValid && name != "Error" || !validation.IsValid && name == "Error");
     }
 
     [Fact]

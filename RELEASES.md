@@ -1,4 +1,11 @@
 ## v1.0.0
+### New Features
+- Added Action Effect Validator, which validate an action effect before it runs to allow conditional effect runners.
+### Breaking Changes
+- Remove Action Validator, which validated an action itself where it is not the role of State Management to validate actions.
+### Performance
+- Added Extra Caching for Dispatcher.
+- Added Better Type Cache in StatePulseRegistry.
 ### Fixes
 - Fix Several Null-Reference Warnings
 - Remove Several Artifacts.

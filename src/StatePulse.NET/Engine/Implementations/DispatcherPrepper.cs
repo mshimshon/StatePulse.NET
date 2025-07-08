@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace StatePulse.Net.Engine.Implementations;
 internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAction>
@@ -12,14 +14,11 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
     private readonly IStatePulseRegistry _statePulseRegistry;
     private readonly DispatchTrackingIdentity? _chainKey;
     private readonly IDispatchTracker<TActionChain> _tracker;
-    private readonly IEnumerable<IActionValidator<TAction>> _actionValidator;
-    private Action<ValidationResult>? _validationErrorCallback;
     public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey)
     {
         _action = action!;
         _serviceProvider = serviceProvider;
         _statePulseRegistry = _serviceProvider.GetRequiredService<IStatePulseRegistry>();
-        _actionValidator = _serviceProvider.GetServices<IActionValidator<TAction>>();
         _chainKey = chainKey;
         var trackerTypeAction = typeof(IDispatchTracker<>).MakeGenericType(typeof(TActionChain));
         _tracker = (IDispatchTracker<TActionChain>)_serviceProvider.GetRequiredService(trackerTypeAction);
@@ -65,7 +64,10 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         return _chainKey?.Id ?? Guid.Empty;
     }
 
-
+    private static MethodInfo? _cachedEffectMethod;
+    private static MethodInfo? _cachedActionValidatorMethod;
+    private static MethodInfo? _cachedReducerMethod;
+    private static readonly ConcurrentDictionary<Type, Type> _cachedEffectInterfaceTypes = new();
     protected async Task ProcessDispatch(bool entryPoint, Guid nextId)
     {
         // we are tracking next chain key only when there is an entry point to avoid tracker during fast dispatch.
@@ -94,10 +96,23 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             {
                 if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
                     break;
-                var method = effectType.GetMethod(nameof(IEffect<IAction>.EffectAsync))!;
-                var del = (Func<TAction, IDispatcher, Task>)Delegate.CreateDelegate(
-                    typeof(Func<TAction, IDispatcher, Task>), effectService, method);
-                //await del(_action, dispatcherService).ConfigureAwait(true); // to be assigned inside ExecutionContext.Run
+
+                var effectValidator = typeof(IActionValidator<,>).MakeGenericType(_action!.GetType(), effectService!.GetType());
+
+                var effectValidators = _serviceProvider.GetServices(effectValidator);
+                if (effectValidators.Count() > 0)
+                    if (_cachedActionValidatorMethod == default)
+                        _cachedActionValidatorMethod = effectValidators.First()!.GetType().GetMethod(nameof(IActionValidator<IAction, IEffect<IAction>>.Validate))!;
+                var effectValidatorRunners = effectValidators
+                    .Select(p => (Task<bool>)_cachedActionValidatorMethod!.Invoke(p, new object[] { _action })!);
+                var validationResult = await Task.WhenAll(effectValidatorRunners);
+                var anyValidationFailed = validationResult.Any(p => !p);
+                if (anyValidationFailed) continue; // skip
+
+                if (_cachedEffectMethod == default)
+                    _cachedEffectMethod = effectType.GetMethod(nameof(IEffect<IAction>.EffectAsync))!;
+
+                var del = (Func<TAction, IDispatcher, Task>)Delegate.CreateDelegate(typeof(Func<TAction, IDispatcher, Task>), effectService, _cachedEffectMethod);
                 effects.Add(del(_action, dispatcherService.Dispatcher));
             }
 
@@ -115,8 +130,9 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
                 if (reducerService != default)
                 {
                     var stateProperty = stateService.GetType().GetProperty(nameof(IStateController<object>.State))!;
-                    var method = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
-                    var task = (Task)method.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
+                    if (_cachedReducerMethod == default)
+                        _cachedReducerMethod = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
+                    var task = (Task)_cachedReducerMethod.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
                     await task.ConfigureAwait(true);
                     // Use reflection to get the Result property (only available on Task<T>)
                     var taskType = task.GetType();
@@ -147,26 +163,8 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
     }
     public IDispatcherPrepper<TAction> UsingSynchronousMode() => Sync();
 
-    public IDispatcherPrepper<TAction> HandleActionValidation(Action<ValidationResult> validationResult)
-    {
-        _validationErrorCallback = validationResult;
-        return this;
-    }
     public async Task<Guid> DispatchAsync(bool asSafe = false)
     {
-        // Run Validator
-        if (_actionValidator.Any())
-        {
-            var validationResult = new ValidationResult();
-            foreach (var validator in _actionValidator)
-                validator.Validate(_action, ref validationResult);
-            _validationErrorCallback?.Invoke(validationResult);
-            if (!validationResult.IsValid)
-            {
-                return Guid.Empty;
-            }
-        }
-
         if ((_action is ISafeAction) || asSafe)
             return await DispatchSafeAsync();
         await DispatchFastAsync();

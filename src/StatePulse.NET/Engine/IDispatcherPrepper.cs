@@ -22,10 +22,4 @@ public interface IDispatcherPrepper<TAction> where TAction : IAction
     /// <returns></returns>
     Task<Guid> DispatchAsync(bool asSafe = false);
 
-    /// <summary>
-    /// Called when action vslidation fail
-    /// </summary>
-    /// <param name="errors"></param>
-    /// <returns></returns>
-    IDispatcherPrepper<TAction> HandleActionValidation(Action<ValidationResult> errors);
 }

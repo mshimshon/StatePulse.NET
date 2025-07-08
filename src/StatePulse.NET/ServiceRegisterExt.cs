@@ -45,7 +45,7 @@ public static class ServiceRegisterExt
         var stateFeatureType = typeof(IStateFeature);
         var actionType = typeof(IAction);
         var actionSafeType = typeof(ISafeAction);
-        var actionValidatorType = typeof(IActionValidator<>);
+        var actionValidatorType = typeof(IActionValidator<,>);
         var registry = new StatePulseRegistry();
         foreach (var assembly in assemblies)
         {
@@ -64,7 +64,7 @@ public static class ServiceRegisterExt
                         if (services.IsEffectImplementationRegistered(type)) continue;
 
                         services.AddTransient(iface, type);
-                        registry.RegisterEffect(type);
+                        registry.RegisterEffect(type, iface);
                         continue;
                     }
 
@@ -72,7 +72,7 @@ public static class ServiceRegisterExt
                     {
                         if (services.IsReducerRegistered(iface)) continue;
                         services.AddTransient(iface, type);
-                        registry.RegisterReducer(type);
+                        registry.RegisterReducer(type, iface);
                         continue;
                     }
 
@@ -94,7 +94,7 @@ public static class ServiceRegisterExt
                     {
                         if (services.IsActionValidatorImplementationRegistered(type)) continue;
                         services.AddTransient(iface, type);
-                        registry.RegisterActionValidator(type);
+                        registry.RegisterActionValidator(type, iface);
                         continue;
                     }
 
@@ -136,7 +136,7 @@ public static class ServiceRegisterExt
         return services.Any(s =>
             s.ImplementationType == implementationType &&
             s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionValidator<>)
+            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionValidator<,>)
         );
     }
 
