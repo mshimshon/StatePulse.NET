@@ -5,7 +5,7 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
     {
         InitializeState();
     }
-    private TState _state;
+    private TState _state = default!;
     public TState State
     {
         get => _state; set

@@ -9,6 +9,8 @@ public abstract class TestBase : IDisposable
     protected TestBase()
     {
         IServiceCollection services = new ServiceCollection();
+        // TOOD: Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
+        // service exceptions du to thread safe on bulk testing.
         services.AddStatePulseServices(o =>
         {
             o.ScanAssemblies = new Type[] {

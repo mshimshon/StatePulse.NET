@@ -1,3 +1,8 @@
+## v1.0.0
+### Fixes
+- Fix Several Null-Reference Warnings
+- Remove Several Artifacts.
+
 ## v0.9.41
 - Fix: Added Anti-Service duplication to avoid double triggers.
 
