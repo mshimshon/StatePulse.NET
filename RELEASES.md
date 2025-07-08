@@ -1,11 +1,46 @@
+﻿## 🔖 Versioning Policy
+
+### 🚧 Pre-1.0.0 (`0.x.x`)
+
+- The project is considered **Work In Progress**.
+- **Breaking changes can occur at any time** without notice.
+- No guarantees are made about stability or upgrade paths.
+
+### ✅ Post-1.0.0 (`1.x.x` and beyond)
+
+Follows a common-sense semantic versioning pattern:
+
+- **Major (`X.0.0`)**  
+  
+  - Introduces major features or architectural changes  
+  - May include well documented **breaking changes**
+
+- **Minor (`1.X.0`)**  
+  
+  - Adds new features or enhancements  
+  - May include significant bug fixes  
+  - **No breaking changes**
+
+- **Patch (`1.0.X`)**  
+  
+  - Hotfixes or urgent bug fixes  
+  - Safe to upgrade  
+  - **No breaking changes**
+  
+
 ## v1.0.0
 ### New Features
 - Added Action Effect Validator, which validate an action effect before it runs to allow conditional effect runners.
+- Compiler Error Generator when using Lambda StateOf(()=> this, ()=> XX) which prevent runtime exceptions.
+- Added Middleware Support ```IEffectMiddleware```, ```IReducerMiddleware``` and ```IDispatchMiddleware```.
+- Some Decision i couldn't take for you so you have behavior options at service registration ```DispatchEffectBehavior```, ```MiddlewareEffectBehavior``` & ```MiddlewareTaskBehavior```
 ### Breaking Changes
 - Remove Action Validator, which validated an action itself where it is not the role of State Management to validate actions.
 ### Performance
 - Added Extra Caching for Dispatcher.
 - Added Better Type Cache in StatePulseRegistry.
+### Clean Code
+- Factored DispatchPrepper for cleaner and ligther methods.
 ### Fixes
 - Fix Several Null-Reference Warnings
 - Remove Several Artifacts.

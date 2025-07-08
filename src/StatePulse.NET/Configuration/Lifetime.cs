@@ -1,5 +1,5 @@
 ﻿namespace StatePulse.Net.Configuration;
-public enum LifetimeEnum
+public enum Lifetime
 {
     Singleton,
     Scoped

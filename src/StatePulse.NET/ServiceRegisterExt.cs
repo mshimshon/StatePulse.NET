@@ -7,7 +7,7 @@ namespace StatePulse.Net;
 public static class ServiceRegisterExt
 {
     private static bool _scanned;
-    private static ConfigureOptions _configureOptions = new ConfigureOptions();
+    public static ConfigureOptions _configureOptions = new ConfigureOptions();
     /// <summary>
     /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
     /// </summary>
@@ -19,7 +19,7 @@ public static class ServiceRegisterExt
         services.AddTransient<IDispatchFactory, DispatchFactory>();
         configure(_configureOptions);
 
-        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
             services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         else
             services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
@@ -40,12 +40,15 @@ public static class ServiceRegisterExt
         if (_scanned) return;
         _scanned = true;
 
+        var effectMiddlewareType = typeof(IEffectMiddleware);
+        var reducerMiddlewareType = typeof(IReducerMiddleware);
+        var dispatchMiddlewareType = typeof(IDispatcherMiddleware);
         var effectType = typeof(IEffect<>);
         var reducerType = typeof(IReducer<,>);
         var stateFeatureType = typeof(IStateFeature);
         var actionType = typeof(IAction);
         var actionSafeType = typeof(ISafeAction);
-        var actionValidatorType = typeof(IActionValidator<,>);
+        var actionValidatorType = typeof(IActionEffectValidator<,>);
         var registry = new StatePulseRegistry();
         foreach (var assembly in assemblies)
         {
@@ -59,16 +62,28 @@ public static class ServiceRegisterExt
                 var interfaces = type.GetInterfaces();
                 foreach (var iface in interfaces)
                 {
+
+                    if (iface.IsGenericType &&
+                        (iface.GetGenericTypeDefinition() == effectMiddlewareType ||
+                        iface.GetGenericTypeDefinition() == reducerMiddlewareType ||
+                        iface.GetGenericTypeDefinition() == dispatchMiddlewareType))
+                    {
+                        if (services.IsImplementationRegistered(type, iface)) continue;
+                        services.AddTransient(iface, type);
+                        continue;
+                    }
+
+
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == effectType)
                     {
-                        if (services.IsEffectImplementationRegistered(type)) continue;
+                        if (services.IsImplementationRegistered(type, iface)) continue;
 
                         services.AddTransient(iface, type);
                         registry.RegisterEffect(type, iface);
                         continue;
                     }
 
-                    if (iface.IsGenericType && iface.GetGenericTypeDefinition() == reducerType)
+                    if (iface.IsGenericType)
                     {
                         if (services.IsReducerRegistered(iface)) continue;
                         services.AddTransient(iface, type);
@@ -82,7 +97,7 @@ public static class ServiceRegisterExt
                         var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(type);
 
                         if (services.IsStateAccessorRegistered(accessorImplementationType)) continue;
-                        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+                        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
                             services.AddScoped(accessorType, accessorImplementationType);  // Registering the correct interface
                         else
                             services.AddSingleton(accessorType, accessorImplementationType);  // Registering the correct interface
@@ -105,7 +120,7 @@ public static class ServiceRegisterExt
                         var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(type);
                         if (services.IsDispatchTrackerRegistered(dispatchTracker)) continue;
                         registry.RegisterAction(type);
-                        if (_configureOptions.ServiceLifetime == LifetimeEnum.Scoped)
+                        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
                             services.AddScoped(dispatchTrackerIface, dispatchTracker);
                         else
                             services.AddSingleton(dispatchTrackerIface, dispatchTracker);
@@ -123,12 +138,12 @@ public static class ServiceRegisterExt
     {
         return services.Any(s => s.ServiceType == reducerType);
     }
-    public static bool IsEffectImplementationRegistered(this IServiceCollection services, Type implementationType)
+    public static bool IsImplementationRegistered(this IServiceCollection services, Type implementationType, Type ifaceType)
     {
         return services.Any(s =>
             s.ImplementationType == implementationType &&
             s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == typeof(IEffect<>)
+            s.ServiceType.GetGenericTypeDefinition() == ifaceType
         );
     }
     public static bool IsActionValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)
@@ -136,7 +151,7 @@ public static class ServiceRegisterExt
         return services.Any(s =>
             s.ImplementationType == implementationType &&
             s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionValidator<,>)
+            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionEffectValidator<,>)
         );
     }
 

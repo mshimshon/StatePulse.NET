@@ -1,5 +1,5 @@
 ﻿namespace StatePulse.Net;
-public interface IActionValidator<in TAction, TEffect>
+public interface IActionEffectValidator<in TAction, TEffect>
     where TAction : IAction
     where TEffect : IEffect<TAction>
 {

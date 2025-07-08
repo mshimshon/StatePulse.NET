@@ -193,3 +193,34 @@ public partial class CounterView : ComponentBase
     
 }
 ```
+
+
+## 🔖 Versioning Policy
+
+### 🚧 Pre-1.0.0 (`0.x.x`)
+
+- The project is considered **Work In Progress**.
+- **Breaking changes can occur at any time** without notice.
+- No guarantees are made about stability or upgrade paths.
+
+### ✅ Post-1.0.0 (`1.x.x` and beyond)
+
+Follows a common-sense semantic versioning pattern:
+
+- **Major (`X.0.0`)**  
+  
+  - Introduces major features or architectural changes  
+  - May include well documented **breaking changes**
+
+- **Minor (`1.X.0`)**  
+  
+  - Adds new features or enhancements  
+  - May include significant bug fixes  
+  - **No breaking changes**
+
+- **Patch (`1.0.X`)**  
+  
+  - Hotfixes or urgent bug fixes  
+  - Safe to upgrade  
+  - **No breaking changes**
+  
