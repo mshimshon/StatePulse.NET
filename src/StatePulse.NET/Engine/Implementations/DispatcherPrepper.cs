@@ -205,13 +205,13 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
     }
     private async Task<bool> RunEffectValidators(Type effectService)
     {
-        var effectValidator = typeof(IActionEffectValidator<,>).MakeGenericType(_action!.GetType(), effectService);
+        var effectValidator = typeof(IEffectValidator<,>).MakeGenericType(_action!.GetType(), effectService);
 
         var effectValidators = _serviceProvider.GetServices(effectValidator);
         if (effectValidators.Count() > 0)
             if (_cachedActionValidatorMethod == default)
                 _cachedActionValidatorMethod = effectValidators.First()!.GetType()
-                    .GetMethod(nameof(IActionEffectValidator<IAction, IEffect<IAction>>.Validate))!;
+                    .GetMethod(nameof(IEffectValidator<IAction, IEffect<IAction>>.Validate))!;
         var effectValidatorRunners = effectValidators
             .Select(p => (Task<bool>)_cachedActionValidatorMethod!.Invoke(p, new object[] { _action })!);
         var validationResult = await Task.WhenAll(effectValidatorRunners);

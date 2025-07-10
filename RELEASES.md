@@ -34,6 +34,7 @@ Follows a common-sense semantic versioning pattern:
 - Compiler Error Generator when using Lambda StateOf(()=> this, ()=> XX) which prevent runtime exceptions.
 - Added Middleware Support ```IEffectMiddleware```, ```IReducerMiddleware``` and ```IDispatchMiddleware```.
 - Some Decision i couldn't take for you so you have behavior options at service registration ```DispatchEffectBehavior```, ```MiddlewareEffectBehavior``` & ```MiddlewareTaskBehavior```
+- Must register individual service using ```AddStatePulse``` + ```Effect``` + ```Action``` + ```Reducer``` + ```StateAccessor``` OR ```EffectValidator```.
 ### Breaking Changes
 - Remove Action Validator, which validated an action itself where it is not the role of State Management to validate actions.
 - Rename ```IStateAccessor<>.StateChanged``` to ```OnStateChanged```.

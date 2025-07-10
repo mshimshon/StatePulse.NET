@@ -8,6 +8,7 @@ public static class ServiceRegisterExt
 {
     private static bool _scanned;
     public static ConfigureOptions _configureOptions = new ConfigureOptions();
+    private static StatePulseRegistry Registry = new StatePulseRegistry();
     /// <summary>
     /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
     /// </summary>
@@ -26,9 +27,83 @@ public static class ServiceRegisterExt
 
         services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
         services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
-        services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
+        services.AddSingleton<IStatePulseRegistry>(Registry);
+        if (_configureOptions.ScanAssemblies.Count() > 0)
+            services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
+
         return services;
     }
+
+
+    public static IServiceCollection AddStatePulseEffect<TEffect, TImplementation>(this IServiceCollection services)
+        => services.AddStatePulseEffect(typeof(TEffect), typeof(TImplementation));
+    private static IServiceCollection AddStatePulseEffect(this IServiceCollection services, Type iFace, Type implementation)
+    {
+        if (services.IsImplementationRegistered(iFace, implementation)) return services;
+
+        services.AddTransient(iFace, implementation);
+        Registry.RegisterEffect(iFace, implementation);
+        return services;
+    }
+
+    public static IServiceCollection AddStatePulseReducer<TReducer, TImplementation>(this IServiceCollection services)
+        => services.AddStatePulseReducer(typeof(TReducer), typeof(TImplementation));
+    private static IServiceCollection AddStatePulseReducer(this IServiceCollection services, Type iFace, Type implementation)
+
+    {
+        if (services.IsReducerRegistered(iFace)) return services;
+
+        services.AddTransient(iFace, implementation);
+        Registry.RegisterReducer(iFace, implementation);
+        return services;
+    }
+    public static IServiceCollection AddStatePulseStateAccessor<TAccessor, TImplementation>(this IServiceCollection services)
+    => services.AddStatePulseStateAccessor(typeof(TAccessor), typeof(TImplementation));
+    private static IServiceCollection AddStatePulseStateAccessor(this IServiceCollection services, Type iFace, Type implementation)
+
+    {
+        var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
+        var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(implementation);
+
+        if (services.IsStateAccessorRegistered(accessorImplementationType)) return services;
+        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
+            services.AddScoped(accessorType, accessorImplementationType);
+        else
+            services.AddSingleton(accessorType, accessorImplementationType);
+
+        Registry.RegisterState(implementation);
+        return services;
+    }
+
+
+    public static IServiceCollection AddStatePulseEffectValidator<TEffectValidator, TImplementation>(this IServiceCollection services)
+    => services.AddStatePulseEffectValidator(typeof(TEffectValidator), typeof(TImplementation));
+    private static IServiceCollection AddStatePulseEffectValidator(this IServiceCollection services, Type iFace, Type implementation)
+
+    {
+        if (services.IsEffectValidatorImplementationRegistered(implementation)) return services;
+        services.AddTransient(iFace, implementation);
+        Registry.RegisterEffectValidator(iFace, implementation);
+        return services;
+    }
+
+    public static IServiceCollection AddStatePulseAction<TImplementation>(this IServiceCollection services) where TImplementation : IAction
+        => services.AddStatePulseAction(typeof(TImplementation));
+    private static IServiceCollection AddStatePulseAction(this IServiceCollection services, Type implementation)
+
+    {
+        // Add Action Based Singleton Dispatch Tracker.
+        var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(implementation);
+        var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(implementation);
+        if (services.IsDispatchTrackerRegistered(dispatchTracker)) return services;
+        Registry.RegisterAction(implementation);
+        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
+            services.AddScoped(dispatchTrackerIface, dispatchTracker);
+        else
+            services.AddSingleton(dispatchTrackerIface, dispatchTracker);
+        return services;
+    }
+
 
     /// <summary>
     /// Automatically scan supplied assemblies for IEffect, IReducer and IStateFeature
@@ -48,8 +123,8 @@ public static class ServiceRegisterExt
         var stateFeatureType = typeof(IStateFeature);
         var actionType = typeof(IAction);
         var actionSafeType = typeof(ISafeAction);
-        var actionValidatorType = typeof(IActionEffectValidator<,>);
-        var registry = new StatePulseRegistry();
+        var actionValidatorType = typeof(IEffectValidator<,>);
+
         foreach (var assembly in assemblies)
         {
             var types = assembly.Assembly.GetTypes();
@@ -72,64 +147,39 @@ public static class ServiceRegisterExt
                         continue;
                     }
 
-
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == effectType)
                     {
-                        if (services.IsImplementationRegistered(type, iface)) continue;
-
-                        services.AddTransient(iface, type);
-                        registry.RegisterEffect(type, iface);
+                        services.AddStatePulseEffect(iface, type);
                         continue;
                     }
 
                     if (iface.IsGenericType)
                     {
-                        if (services.IsReducerRegistered(iface)) continue;
-                        services.AddTransient(iface, type);
-                        registry.RegisterReducer(type, iface);
+                        services.AddStatePulseReducer(iface, type);
                         continue;
                     }
 
                     if (!iface.IsGenericType && iface == stateFeatureType)
                     {
-                        var accessorType = typeof(IStateAccessor<>).MakeGenericType(type);
-                        var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(type);
-
-                        if (services.IsStateAccessorRegistered(accessorImplementationType)) continue;
-                        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
-                            services.AddScoped(accessorType, accessorImplementationType);  // Registering the correct interface
-                        else
-                            services.AddSingleton(accessorType, accessorImplementationType);  // Registering the correct interface
-                        registry.RegisterState(type);
+                        services.AddStatePulseStateAccessor(iface, type);
                         continue;
                     }
 
                     if (iface.IsGenericType && iface.GetGenericTypeDefinition() == actionValidatorType)
                     {
-                        if (services.IsActionValidatorImplementationRegistered(type)) continue;
-                        services.AddTransient(iface, type);
-                        registry.RegisterActionValidator(type, iface);
+                        services.AddStatePulseEffectValidator(iface, type);
                         continue;
                     }
 
                     if (!iface.IsGenericType && (iface == actionType || iface == actionSafeType))
                     {
-                        // Add Action Based Singleton Dispatch Tracker.
-                        var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(type);
-                        var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(type);
-                        if (services.IsDispatchTrackerRegistered(dispatchTracker)) continue;
-                        registry.RegisterAction(type);
-                        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
-                            services.AddScoped(dispatchTrackerIface, dispatchTracker);
-                        else
-                            services.AddSingleton(dispatchTrackerIface, dispatchTracker);
-
+                        services.AddStatePulseAction(type);
                     }
                 }
             }
         }
 
-        services.AddSingleton<IStatePulseRegistry>(registry);
+
 
 
     }
@@ -146,12 +196,12 @@ public static class ServiceRegisterExt
             !s.ServiceType.IsGenericType && s.ServiceType == ifaceType
         );
     }
-    public static bool IsActionValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)
+    public static bool IsEffectValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)
     {
         return services.Any(s =>
             s.ImplementationType == implementationType &&
             s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == typeof(IActionEffectValidator<,>)
+            s.ServiceType.GetGenericTypeDefinition() == typeof(IEffectValidator<,>)
         );
     }
 

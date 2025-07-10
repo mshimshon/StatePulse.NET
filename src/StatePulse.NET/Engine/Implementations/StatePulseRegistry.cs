@@ -18,5 +18,5 @@ internal class StatePulseRegistry : IStatePulseRegistry
     public void RegisterReducer(Type reducerType, Type interfaceType) => _knownReducers.Add(reducerType, interfaceType);
     public void RegisterState(Type stateType) => _knownStates.Add(stateType);
     public void RegisterAction(Type actionType) => _knownActions.Add(actionType);
-    public void RegisterActionValidator(Type actionValType, Type interfaceType) => _knownActionValidators.Add(actionValType, interfaceType);
+    public void RegisterEffectValidator(Type actionValType, Type interfaceType) => _knownActionValidators.Add(actionValType, interfaceType);
 }

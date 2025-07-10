@@ -11,6 +11,6 @@ public interface IStatePulseRegistry
     void RegisterEffect(Type effectType, Type interfaceType);
     void RegisterReducer(Type reducerType, Type interfaceType);
     void RegisterAction(Type actionType);
-    void RegisterActionValidator(Type actionValType, Type interfaceType);
+    void RegisterEffectValidator(Type actionValType, Type interfaceType);
 
 }
