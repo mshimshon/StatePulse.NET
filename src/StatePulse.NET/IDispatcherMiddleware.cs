@@ -1,5 +1,5 @@
 ﻿namespace StatePulse.Net;
-internal interface IDispatcherMiddleware
+public interface IDispatcherMiddleware
 {
     Task BeforeDispatch(object action);
     Task AfterDispatch(object action);

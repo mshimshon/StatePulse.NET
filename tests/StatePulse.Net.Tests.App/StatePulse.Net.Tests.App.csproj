@@ -72,6 +72,7 @@
     <ItemGroup>
       <Folder Include="Pulsars\Counter\Contracts\Responses\" />
       <Folder Include="Pulsars\Counter\Effects\" />
+      <Folder Include="Pulsars\Counter\Middlewares\" />
       <Folder Include="Pulsars\Weather\Actions\Validators\" />
     </ItemGroup>
 

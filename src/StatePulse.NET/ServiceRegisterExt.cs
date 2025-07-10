@@ -62,11 +62,10 @@ public static class ServiceRegisterExt
                 var interfaces = type.GetInterfaces();
                 foreach (var iface in interfaces)
                 {
+                    // TODO: Allow Extension MEthods to manually add each types and perform registration.
 
-                    if (iface.IsGenericType &&
-                        (iface.GetGenericTypeDefinition() == effectMiddlewareType ||
-                        iface.GetGenericTypeDefinition() == reducerMiddlewareType ||
-                        iface.GetGenericTypeDefinition() == dispatchMiddlewareType))
+                    if (!iface.IsGenericType &&
+                        (iface == effectMiddlewareType || iface == reducerMiddlewareType || iface == dispatchMiddlewareType))
                     {
                         if (services.IsImplementationRegistered(type, iface)) continue;
                         services.AddTransient(iface, type);
@@ -143,7 +142,8 @@ public static class ServiceRegisterExt
         return services.Any(s =>
             s.ImplementationType == implementationType &&
             s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == ifaceType
+            s.ServiceType.GetGenericTypeDefinition() == ifaceType ||
+            !s.ServiceType.IsGenericType && s.ServiceType == ifaceType
         );
     }
     public static bool IsActionValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)

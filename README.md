@@ -144,9 +144,9 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
     .HandleActionValidation(p => validation = p)
     .DispatchAsync();
 
-// You can trigger synchronously... this will await the whole pipeline, otherwise you just await until action is send to dispatch pool.
+// You can trigger awaited pipeline... this will await the whole pipeline, otherwise you just await until action is send to dispatch pool.
 await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-    .Sync()
+    .Await()
     .DispatchAsync();
 
 // if the action is implementing ISafeState, the dispatch will always run asSafe=true but an action not implementing ISafeAction will
@@ -194,6 +194,37 @@ public partial class CounterView : ComponentBase
 }
 ```
 
+## **Middlewares**
+Middleware in StatePulse.NET provides a clean and centralized way to intercept actions as they are dispatched. 
+It’s used to handle cross-cutting concerns such as logging, authorization checks, analytics, telemetry, or dynamic action filtering,
+without scattering logic across components or effects. By placing middleware at the core of the dispatch pipeline, you can modify, delay, 
+or block actions in a consistent and testable manner, making your application's behavior more transparent and maintainable.
+
+### **Dispatch Middlewares**:
+```csharp
+using StatePulse.Net;
+
+public partial class CounterView : IDispatcherMiddleware
+{
+
+    // METHOD 1:
+    [Inject] public IStatePulse PulseState { get; set; } = default!; // Handles State Accessor
+
+    // This is for convienience always use this method or directly PulseState.StateOf<CounterState>(this).Value
+    // Never assign State Instance variable as it will not update... 
+    // Never use lambda it will throw exception as WeakREference is fundamatally flawed and disposes of lambda even when its object is alive.
+    private CounterState state => PulseState.StateOf<CounterState>(()=>this, OnUpdate);
+    
+    private async Task OnUpdate() => await InvokeAsync(StateHadChanged);
+
+    // METHOD 2: 
+    // Inject direct state but injecting the state directly requires you to handle onchanged events by sub/unsub in lifecycle
+    // Or to create a basecomponent system similar to other state management systems.
+    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
+
+    
+}
+```
 
 ## 🔖 Versioning Policy
 

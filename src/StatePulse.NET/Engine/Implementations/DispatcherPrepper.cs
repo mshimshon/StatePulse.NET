@@ -153,7 +153,20 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         else
             _ = Task.WhenAll(effectMiddlewaresTasks);
     }
+    private async Task RunMiddlewareReducer(IEnumerable<IReducerMiddleware> middlewares, Func<IReducerMiddleware, Task> func)
+    {
 
+        var middlewaresTasks = new List<Task>();
+        foreach (var item in middlewares)
+        {
+            middlewaresTasks.Add(func(item));
+        }
+
+        if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+            await Task.WhenAll(middlewaresTasks);
+        else
+            _ = Task.WhenAll(middlewaresTasks);
+    }
     private async Task RunEffects(DispatchTrackingIdentity? nextChain, IDispatchFactory dispatcherService)
     {
         var effectType = typeof(IEffect<>).MakeGenericType(_action!.GetType());
@@ -207,6 +220,8 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
     private async Task RunReducer(DispatchTrackingIdentity? nextChain)
     {
         var actionType = typeof(TAction);
+        var middlewares = _serviceProvider.GetServices<IReducerMiddleware>();
+
         foreach (var stateType in _statePulseRegistry.KnownStates)
         {
             if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
@@ -218,10 +233,13 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             // Trigger Reducer
             if (reducerService != default)
             {
+                //await RunMiddlewareReducer(middlewares, p=>p.BeforeReducing())
+                // TODO: Improved by using Dynamic Method Calls and Possibly Creating these at scan.
                 var stateProperty = stateService.GetType().GetProperty(nameof(IStateController<object>.State))!;
                 if (_cachedReducerMethod == default)
                     _cachedReducerMethod = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
-                var task = (Task)_cachedReducerMethod.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
+                var task =
+                    (Task)_cachedReducerMethod.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
                 await task.ConfigureAwait(true);
                 // Use reflection to get the Result property (only available on Task<T>)
                 var taskType = task.GetType();
