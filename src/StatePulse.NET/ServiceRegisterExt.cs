@@ -71,7 +71,7 @@ public static class ServiceRegisterExt
         else
             services.AddSingleton(accessorType, accessorImplementationType);
 
-        Registry.RegisterState(implementation);
+        Registry.RegisterStateAccessor(implementation);
         return services;
     }
 

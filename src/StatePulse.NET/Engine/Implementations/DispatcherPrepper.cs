@@ -15,6 +15,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
     private readonly IStatePulseRegistry _statePulseRegistry;
     private readonly DispatchTrackingIdentity? _chainKey;
     private readonly IDispatchTracker<TActionChain> _tracker;
+
     public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey)
     {
         _action = action!;
@@ -67,7 +68,6 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
     private static MethodInfo? _cachedEffectMethod;
     private static MethodInfo? _cachedActionValidatorMethod;
-    private static MethodInfo? _cachedReducerMethod;
     private static readonly ConcurrentDictionary<Type, Type> _cachedEffectInterfaceTypes = new();
     protected async Task ProcessDispatch(bool entryPoint, Guid nextId)
     {
@@ -127,8 +127,6 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         _forceSyncronous = true;
         return this;
     }
-    public IDispatcherPrepper<TAction> UsingSynchronousMode() => Await();
-
     public async Task<Guid> DispatchAsync(bool asSafe = false)
     {
         if ((_action is ISafeAction) || asSafe)
@@ -153,7 +151,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         else
             _ = Task.WhenAll(effectMiddlewaresTasks);
     }
-    private async Task RunMiddlewareReducer(IEnumerable<IReducerMiddleware> middlewares, Func<IReducerMiddleware, Task> func)
+    private Task RunMiddlewareReducer(IEnumerable<IReducerMiddleware> middlewares, Func<IReducerMiddleware, Task> func)
     {
 
         var middlewaresTasks = new List<Task>();
@@ -161,11 +159,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         {
             middlewaresTasks.Add(func(item));
         }
-
-        if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-            await Task.WhenAll(middlewaresTasks);
-        else
-            _ = Task.WhenAll(middlewaresTasks);
+        return Task.WhenAll(middlewaresTasks);
     }
     private async Task RunEffects(DispatchTrackingIdentity? nextChain, IDispatchFactory dispatcherService)
     {
@@ -233,19 +227,30 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             // Trigger Reducer
             if (reducerService != default)
             {
-                //await RunMiddlewareReducer(middlewares, p=>p.BeforeReducing())
-                // TODO: Improved by using Dynamic Method Calls and Possibly Creating these at scan.
-                var stateProperty = stateService.GetType().GetProperty(nameof(IStateController<object>.State))!;
-                if (_cachedReducerMethod == default)
-                    _cachedReducerMethod = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
-                var task =
-                    (Task)_cachedReducerMethod.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
-                await task.ConfigureAwait(true);
-                // Use reflection to get the Result property (only available on Task<T>)
-                var taskType = task.GetType();
-                var resultProperty = taskType.GetProperty("Result");
-                var newState = resultProperty?.GetValue(task);
-                stateProperty.SetValue(stateService, newState);
+
+                var currentState = _statePulseRegistry.KnownStatesStateGetter[stateAccessorType](stateService)!;
+                var middlewareTasks = RunMiddlewareReducer(middlewares, p => p.BeforeReducing(currentState, _action));
+                if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                    await middlewareTasks;
+
+                var reduceTask = (Task)_statePulseRegistry.KnownReducersReduceMethod[reducerType](reducerService,
+                    new object[] {
+                        currentState,
+                        _action }!)!;
+
+                await reduceTask;
+                // make sure middlewares are done before starting to call after reduced
+                await middlewareTasks;
+
+                var resultProperty = reduceTask.GetType().GetProperty("Result");
+                var newState = resultProperty?.GetValue(reduceTask);
+                if (newState == null)
+                    throw new InvalidOperationException("Reducer returned null state.");
+
+                _statePulseRegistry.KnownStatesStateSetter[stateAccessorType](stateService, newState);
+                middlewareTasks = RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
+                if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                    await middlewareTasks;
             }
         }
     }
