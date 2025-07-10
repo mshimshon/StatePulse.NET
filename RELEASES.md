@@ -36,6 +36,8 @@ Follows a common-sense semantic versioning pattern:
 - Some Decision i couldn't take for you so you have behavior options at service registration ```DispatchEffectBehavior```, ```MiddlewareEffectBehavior``` & ```MiddlewareTaskBehavior```
 ### Breaking Changes
 - Remove Action Validator, which validated an action itself where it is not the role of State Management to validate actions.
+- Rename ```IStateAccessor<>.StateChanged``` to ```OnStateChanged```.
+- Removed ```UsingSynchronousMode``` and Renamed ```Sync``` to ```Await``` for accuracy.
 ### Performance
 - Added Extra Caching for Dispatcher.
 - Added Better Type Cache in StatePulseRegistry.

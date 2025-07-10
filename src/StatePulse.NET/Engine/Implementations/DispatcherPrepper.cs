@@ -122,12 +122,12 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
     }
 
-    public IDispatcherPrepper<TAction> Sync()
+    public IDispatcherPrepper<TAction> Await()
     {
         _forceSyncronous = true;
         return this;
     }
-    public IDispatcherPrepper<TAction> UsingSynchronousMode() => Sync();
+    public IDispatcherPrepper<TAction> UsingSynchronousMode() => Await();
 
     public async Task<Guid> DispatchAsync(bool asSafe = false)
     {

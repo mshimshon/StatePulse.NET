@@ -1,4 +1,6 @@
-﻿namespace StatePulse.Net.Tests.App;
+﻿using Microsoft.Extensions.Logging;
+
+namespace StatePulse.Net.Tests.App;
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()

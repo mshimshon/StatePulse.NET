@@ -26,13 +26,13 @@ public class StatePulseInitTests : TestBase
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
-        stateAccessor.StateChanged += (sender, state) =>
+        stateAccessor.OnStateChanged += (sender, state) =>
         {
             Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
         };
         // Dispatch action that changes state
         var action = new ProfileCardDefineAction();
-        await dispatcher.Prepare(() => action).UsingSynchronousMode().DispatchAsync();
+        await dispatcher.Prepare(() => action).Await().DispatchAsync();
 
         Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
     }
@@ -43,7 +43,7 @@ public class StatePulseInitTests : TestBase
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
-        await dispatcher.Prepare<MainMenuOpenAction>().UsingSynchronousMode().DispatchAsync();
+        await dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
 
         Assert.NotEmpty(stateAccessor.State.NavigationItems ?? new());
     }
@@ -57,7 +57,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
         await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-            .Sync().DispatchAsync();
+            .Await().DispatchAsync();
 
     }
 
@@ -69,7 +69,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         int changes = 0;
-        stateAccessor.StateChanged += (s, state) =>
+        stateAccessor.OnStateChanged += (s, state) =>
         {
             changes++;
         };
@@ -109,7 +109,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         int changes = 0;
-        stateAccessor.StateChanged += (s, state) =>
+        stateAccessor.OnStateChanged += (s, state) =>
         {
             changes++;
         };
@@ -119,13 +119,13 @@ public class StatePulseInitTests : TestBase
         {
             var a = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, "Profile 1")
-                .UsingSynchronousMode()
+                .Await()
                 .DispatchAsync();
 
 
             var b = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, "Profile 2")
-                .UsingSynchronousMode()
+                .Await()
                 .DispatchAsync();
             await Task.WhenAll(a, b);
             result.Add(stateAccessor.State.ProfileName!);

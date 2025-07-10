@@ -14,13 +14,13 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
             // make sure state can never be set null always has a default state.
             if (value == null) InitializeState();
             else _state = value;
-            StateChanged?.Invoke(this, _state);
-            StateChangedNoDetails?.Invoke(this, new EventArgs());
+            OnStateChanged?.Invoke(this, _state);
+            OnStateChangedNoDetails?.Invoke(this, new EventArgs());
         }
     }
 
-    public event OnChangeEventHandler<TState>? StateChanged;
-    public event EventHandler? StateChangedNoDetails;
+    public event OnChangeEventHandler<TState>? OnStateChanged;
+    public event EventHandler? OnStateChangedNoDetails;
 
     private void InitializeState()
     {
