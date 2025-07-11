@@ -30,11 +30,11 @@ Follows a common-sense semantic versioning pattern:
 
 ## v1.0.0
 ### New Features
-- Added Action Effect Validator, which validate an action effect before it runs to allow conditional effect runners.
+- Added Action Effect Validator, which validate an effect before it runs to allow conditional effect runners.
 - Compiler Error Generator when using Lambda StateOf(()=> this, ()=> XX) which prevent runtime exceptions.
 - Added Middleware Support ```IEffectMiddleware```, ```IReducerMiddleware``` and ```IDispatchMiddleware```.
 - Some Decision i couldn't take for you so you have behavior options at service registration ```DispatchEffectBehavior```, ```MiddlewareEffectBehavior``` & ```MiddlewareTaskBehavior```
-- Must register individual service using ```AddStatePulse``` + ```Effect``` + ```Action``` + ```Reducer``` + ```StateAccessor``` OR ```EffectValidator```.
+- Manual service register MUST use the extension methods = ```AddStatePulse``` + ```Effect``` + ```Action``` + ```Reducer``` + ```StateAccessor``` OR ```EffectValidator```.
 ### Breaking Changes
 - Remove Action Validator, which validated an action itself where it is not the role of State Management to validate actions.
 - Rename ```IStateAccessor<>.StateChanged``` to ```OnStateChanged```.
@@ -42,6 +42,7 @@ Follows a common-sense semantic versioning pattern:
 ### Performance
 - Added Extra Caching for Dispatcher.
 - Added Better Type Cache in StatePulseRegistry.
+- Added Dynamic Method Cache rather than reflection.
 ### Clean Code
 - Factored DispatchPrepper for cleaner and ligther methods.
 ### Fixes

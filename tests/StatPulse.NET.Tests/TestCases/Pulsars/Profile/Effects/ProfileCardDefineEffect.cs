@@ -20,7 +20,7 @@ internal class ProfileCardDefineEffect : IEffect<ProfileCardDefineAction>
 
         await Task.Delay(value);
         var myProfile = new UserResponse();
-        await dispatcher.Prepare(() => new ProfileCardDefineResultAction(action.TestData ?? myProfile.Name, myProfile.Picture, myProfile.Id)).DispatchAsync();
+        await dispatcher.Prepare(() => new ProfileCardDefineResultAction(action.TestData ?? myProfile.Name, myProfile.Picture, myProfile.Id) { UnitTestStringer = action.TestData }).DispatchAsync();
         await dispatcher.Prepare<ProfileCardLoaderStopAction>().DispatchAsync();
     }
 

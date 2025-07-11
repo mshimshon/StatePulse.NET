@@ -11,6 +11,7 @@ internal class ProfileCardDefineResultReducer : IReducer<ProfileCardState, Profi
             LastUpdate = DateTime.UtcNow,
             ProfileId = action.Id,
             ProfileName = action.Name,
-            ProfilePicture = action.Picture
+            ProfilePicture = action.Picture,
+            UnitTestStringer = action.UnitTestStringer
         });
 }

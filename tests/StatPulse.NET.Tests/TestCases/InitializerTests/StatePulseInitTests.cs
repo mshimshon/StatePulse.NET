@@ -54,11 +54,12 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingEffectShouldCorrectlyFailActionValidator(string name)
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
             .Await().DispatchAsync();
-
+        if (name == "Error") Assert.True(stateAccessor.State.UnitTestStringer == default);
+        else Assert.True(stateAccessor.State.UnitTestStringer == name);
     }
 
     [Fact]
