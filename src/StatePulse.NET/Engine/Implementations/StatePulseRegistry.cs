@@ -30,7 +30,7 @@ internal class StatePulseRegistry : IStatePulseRegistry
 
     public IReadOnlyDictionary<Type, Type> KnownStateToAccessors => _knownStateToAccessors;
 
-    public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects.Add(effectType, interfaceType);
+    public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects[effectType] = interfaceType;
     public void RegisterReducer(Type reducerType, Type interfaceType)
     {
         var reduceMethodName = nameof(IReducer<IStateFeature, IAction>.ReduceAsync);
@@ -39,7 +39,7 @@ internal class StatePulseRegistry : IStatePulseRegistry
         var stateType = returnTaskType.GetGenericArguments()[0]; // This is TState
         _knownReducersTaskResult[reducerType] = stateType.BuildTaskResultGetter();
         _knownReducersReduceMethod[reducerType] = method.CreateDynamicReflectionInvoker();
-        _knownReducers.Add(reducerType, interfaceType);
+        _knownReducers.TryAdd(reducerType, interfaceType);
     }
     public void RegisterState(Type stateType)
     {
@@ -50,9 +50,14 @@ internal class StatePulseRegistry : IStatePulseRegistry
         _knownStateAccessorsStateGetter[accessorType] = property.CreateGetterDynamic();
         _knownStateAccessorsStateSetter[accessorType] = property.CreateSetterDynamic();
         _knownStateToAccessors[stateType] = accessorType;
-        _knownStates.Add(stateType);
+        if (!_knownStates.Contains(stateType))
+            _knownStates.Add(stateType);
     }
-    public void RegisterAction(Type actionType) => _knownActions.Add(actionType);
-    public void RegisterEffectValidator(Type actionValType, Type interfaceType) => _knownActionValidators.Add(actionValType, interfaceType);
+    public void RegisterAction(Type actionType)
+    {
+        if (!_knownActions.Contains(actionType))
+            _knownActions.Add(actionType);
+    }
+    public void RegisterEffectValidator(Type actionValType, Type interfaceType) => _knownActionValidators[actionValType] = interfaceType;
 
 }

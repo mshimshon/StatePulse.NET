@@ -135,21 +135,19 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         return Guid.Empty;
     }
 
-    private async Task RunMiddlewareEffect(IEnumerable<IEffectMiddleware> middlewares, Func<IEffectMiddleware, Task> func, MiddlewareEffectBehavior typeOfEffect)
+    private Task RunMiddlewareEffect(IEnumerable<IEffectMiddleware> middlewares, Func<IEffectMiddleware, Task> func, Func<MiddlewareEffectBehavior, bool> conditionBehavior)
     {
-        if (ServiceRegisterExt._configureOptions.MiddlewareEffectBehavior != typeOfEffect)
-            return;
+        if (!conditionBehavior(ServiceRegisterExt._configureOptions.MiddlewareEffectBehavior))
+            return Task.CompletedTask;
 
         var effectMiddlewaresTasks = new List<Task>();
         foreach (var item in middlewares)
         {
             effectMiddlewaresTasks.Add(func(item));
         }
+        return Task.WhenAll(effectMiddlewaresTasks);
 
-        if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-            await Task.WhenAll(effectMiddlewaresTasks);
-        else
-            _ = Task.WhenAll(effectMiddlewaresTasks);
+
     }
     private Task RunMiddlewareReducer(IEnumerable<IReducerMiddleware> middlewares, Func<IReducerMiddleware, Task> func)
     {
@@ -169,16 +167,24 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         var effectServices = _serviceProvider.GetServices(effectType);
 
         var effectMiddlewares = _serviceProvider.GetServices<IEffectMiddleware>();
-        await RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), MiddlewareEffectBehavior.PerGroupEffects);
+        var effectMiddlewareTasks = RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
+
+        if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+            await effectMiddlewareTasks;
 
         foreach (var effectService in effectServices)
         {
             if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
                 break;
-            await RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), MiddlewareEffectBehavior.PerIndividualEffect);
+            effectMiddlewareTasks = RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
 
-            bool validationFailed = await RunEffectValidators(effectService!.GetType());
-            if (validationFailed) continue; // skip
+            if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                await effectMiddlewareTasks;
+
+            bool validationPassed = await RunEffectValidators(effectService!.GetType(), effectMiddlewares);
+            if (!validationPassed)
+                continue; // skip
+
 
             if (_cachedEffectMethod == default)
                 _cachedEffectMethod = effectType.GetMethod(nameof(IEffect<IAction>.EffectAsync))!;
@@ -190,26 +196,47 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
                 if (ServiceRegisterExt._configureOptions.DispatchEffectBehavior == DispatchEffectBehavior.Sequential)
                     await effectTask;
             }
-
-            await RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), MiddlewareEffectBehavior.PerIndividualEffect);
+            if (ServiceRegisterExt._configureOptions.MiddlewareEffectBehavior == MiddlewareEffectBehavior.PerIndividualEffect)
+                await effectMiddlewareTasks;
+            var effectMiddlewareAfterTasks = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
+            if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                await effectMiddlewareAfterTasks;
         }
         await Task.WhenAll(effects);
+        await effectMiddlewareTasks;
 
-        await RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), MiddlewareEffectBehavior.PerGroupEffects);
+        _ = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
     }
-    private async Task<bool> RunEffectValidators(Type effectService)
+    private async Task<bool> RunEffectValidators(Type effectService, IEnumerable<IEffectMiddleware> effectMiddlewares)
     {
+        //TODO: Optimize This, Caching, Redundent GetServices...
         var effectValidator = typeof(IEffectValidator<,>).MakeGenericType(_action!.GetType(), effectService);
 
         var effectValidators = _serviceProvider.GetServices(effectValidator);
         if (effectValidators.Count() > 0)
             if (_cachedActionValidatorMethod == default)
-                _cachedActionValidatorMethod = effectValidators.First()!.GetType()
-                    .GetMethod(nameof(IEffectValidator<IAction, IEffect<IAction>>.Validate))!;
-        var effectValidatorRunners = effectValidators
-            .Select(p => (Task<bool>)_cachedActionValidatorMethod!.Invoke(p, new object[] { _action })!);
-        var validationResult = await Task.WhenAll(effectValidatorRunners);
-        return validationResult.Any(p => !p);
+                _cachedActionValidatorMethod = effectValidators.First()!.GetType().GetMethod(nameof(IEffectValidator<IAction, IEffect<IAction>>.Validate))!;
+        Dictionary<object, Task<bool>> validationResults = new();
+        foreach (var validator in effectValidators)
+        {
+            validationResults[validator!] = (Task<bool>)_cachedActionValidatorMethod!.Invoke(validator, new object[] { _action })!;
+        }
+        await Task.WhenAll(validationResults.Values);
+        bool passed = true;
+        foreach (var validatorNResults in validationResults)
+        {
+            bool pass = await validatorNResults.Value;
+            if (!pass)
+            {
+                passed = false;
+                _ = RunMiddlewareEffect(effectMiddlewares, p => p.WhenEffectValidationFailed(_action, validatorNResults.Key), p => true);
+            }
+            else
+            {
+                _ = RunMiddlewareEffect(effectMiddlewares, p => p.WhenEffectValidationSucceed(_action, validatorNResults.Key), p => true);
+            }
+        }
+        return passed;
     }
     private async Task RunReducer(DispatchTrackingIdentity? nextChain)
     {

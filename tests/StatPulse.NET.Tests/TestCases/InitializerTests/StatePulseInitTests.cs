@@ -41,9 +41,9 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingEffectShouldCorrectlyTriggerActions()
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
         await dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
 
         Assert.NotEmpty(stateAccessor.State.NavigationItems ?? new());
     }

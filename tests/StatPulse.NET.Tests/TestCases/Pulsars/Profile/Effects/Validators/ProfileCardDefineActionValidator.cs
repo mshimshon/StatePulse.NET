@@ -1,7 +1,7 @@
 ﻿using StatePulse.Net;
-using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Effects;
+using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
 
-namespace StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions.Validators;
+namespace StatePulse.NET.Tests.TestCases.Pulsars.Profile.Effects.Validators;
 internal class ProfileCardDefineActionValidator : IEffectValidator<ProfileCardDefineAction, ProfileCardDefineEffect>
 {
     public Task<bool> Validate(ProfileCardDefineAction action)

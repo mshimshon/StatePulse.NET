@@ -35,8 +35,16 @@ public static class ServiceRegisterExt
     }
 
 
-    public static IServiceCollection AddStatePulseEffect<TEffect, TImplementation>(this IServiceCollection services)
-        => services.AddStatePulseEffect(typeof(TEffect), typeof(TImplementation));
+    public static IServiceCollection AddStatePulseEffect<TImplementation>(this IServiceCollection services)
+    {
+        var implType = typeof(TImplementation);
+
+        var effectInterface = implType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEffect<>));
+        if (effectInterface == null)
+            throw new InvalidOperationException($"{implType.Name} must implement {typeof(IEffect<>).Name}");
+        return services.AddStatePulseEffect(effectInterface!, implType);
+    }
+
     private static IServiceCollection AddStatePulseEffect(this IServiceCollection services, Type iFace, Type implementation)
     {
         if (services.IsImplementationRegistered(iFace, implementation)) return services;
@@ -46,8 +54,16 @@ public static class ServiceRegisterExt
         return services;
     }
 
-    public static IServiceCollection AddStatePulseReducer<TReducer, TImplementation>(this IServiceCollection services)
-        => services.AddStatePulseReducer(typeof(TReducer), typeof(TImplementation));
+    public static IServiceCollection AddStatePulseReducer<TImplementation>(this IServiceCollection services)
+    {
+        var implType = typeof(TImplementation);
+
+        var reducerInterface = implType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReducer<,>));
+        if (reducerInterface == null)
+            throw new InvalidOperationException($"{implType.Name} must implement {typeof(IReducer<,>).Name}");
+
+        return services.AddStatePulseReducer(reducerInterface!, implType);
+    }
     private static IServiceCollection AddStatePulseReducer(this IServiceCollection services, Type iFace, Type implementation)
 
     {
@@ -76,9 +92,17 @@ public static class ServiceRegisterExt
         return services;
     }
 
+    public static IServiceCollection AddStatePulseEffectValidator<TImplementation>(this IServiceCollection services)
+    {
+        var implType = typeof(TImplementation);
 
-    public static IServiceCollection AddStatePulseEffectValidator<TEffectValidator, TImplementation>(this IServiceCollection services)
-    => services.AddStatePulseEffectValidator(typeof(TEffectValidator), typeof(TImplementation));
+        var validatorInterface = implType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEffectValidator<,>));
+        if (validatorInterface == null)
+            throw new InvalidOperationException($"{implType.Name} must implement {typeof(IEffectValidator<,>).Name}");
+
+
+        return services.AddStatePulseEffectValidator(validatorInterface!, implType);
+    }
     private static IServiceCollection AddStatePulseEffectValidator(this IServiceCollection services, Type iFace, Type implementation)
 
     {
