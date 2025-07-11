@@ -6,6 +6,29 @@ using System.Runtime.CompilerServices;
 namespace StatePulse.Net.Engine.Extensions;
 internal static class ReflectionExt
 {
+    public static Func<object, object?> BuildTaskResultGetter(this Type stateType)
+    {
+        var taskType = typeof(Task<>).MakeGenericType(stateType);
+        var resultProp = taskType.GetProperty("Result")
+            ?? throw new InvalidOperationException($"No Result property on Task<{stateType.Name}>");
+
+        var method = new DynamicMethod(
+            $"__get_result_{stateType.Name}_{Guid.NewGuid()}",
+            typeof(object),
+            new[] { typeof(object) },
+            taskType.Module,
+            skipVisibility: true);
+
+        var il = method.GetILGenerator();
+
+        il.Emit(OpCodes.Ldarg_0);                  // Load Task<TState> argument
+        il.EmitUnboxOrCast(taskType);              // Cast to Task<TState>
+        il.EmitCall(OpCodes.Callvirt, resultProp.GetMethod!, null); // Call get_Result
+        il.EmitBoxIfNeeded(stateType);             // Box result if value type
+        il.Emit(OpCodes.Ret);
+
+        return (Func<object, object?>)method.CreateDelegate(typeof(Func<object, object?>));
+    }
     public static Action<object, object?> CreateSetterDynamic(this PropertyInfo property)
     {
         if (!property.CanWrite)

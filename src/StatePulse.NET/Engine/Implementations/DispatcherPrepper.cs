@@ -221,14 +221,14 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
                 break;
             var reducerType = typeof(IReducer<,>).MakeGenericType(stateType, actionType);
-            var stateAccessorType = typeof(IStateAccessor<>).MakeGenericType(stateType);
+            var stateAccessorType = _statePulseRegistry.KnownStateToAccessors[stateType];
             var stateService = _serviceProvider.GetRequiredService(stateAccessorType);
             var reducerService = _serviceProvider.GetService(reducerType);
             // Trigger Reducer
             if (reducerService != default)
             {
 
-                var currentState = _statePulseRegistry.KnownStatesStateGetter[stateAccessorType](stateService)!;
+                var currentState = _statePulseRegistry.KnownStateAccessorsStateGetter[stateAccessorType](stateService)!;
                 var middlewareTasks = RunMiddlewareReducer(middlewares, p => p.BeforeReducing(currentState, _action));
                 if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;
@@ -242,12 +242,10 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
                 // make sure middlewares are done before starting to call after reduced
                 await middlewareTasks;
 
-                var resultProperty = reduceTask.GetType().GetProperty("Result");
-                var newState = resultProperty?.GetValue(reduceTask);
-                if (newState == null)
-                    throw new InvalidOperationException("Reducer returned null state.");
+                var newState = _statePulseRegistry.KnownReducersTaskResult[reducerType](reduceTask);
+                if (newState == null) throw new InvalidOperationException("Reducer returned null state.");
 
-                _statePulseRegistry.KnownStatesStateSetter[stateAccessorType](stateService, newState);
+                _statePulseRegistry.KnownStateAccessorsStateSetter[stateAccessorType](stateService, newState);
                 middlewareTasks = RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
                 if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;

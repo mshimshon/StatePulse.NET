@@ -57,9 +57,10 @@ public static class ServiceRegisterExt
         Registry.RegisterReducer(iFace, implementation);
         return services;
     }
-    public static IServiceCollection AddStatePulseStateAccessor<TAccessor, TImplementation>(this IServiceCollection services)
-    => services.AddStatePulseStateAccessor(typeof(TAccessor), typeof(TImplementation));
-    private static IServiceCollection AddStatePulseStateAccessor(this IServiceCollection services, Type iFace, Type implementation)
+    public static IServiceCollection AddStatePulseStateFeature<TImplementation>(this IServiceCollection services)
+        where TImplementation : IStateFeature
+    => services.AddStatePulseStateFeature(typeof(TImplementation));
+    private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
 
     {
         var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
@@ -71,7 +72,7 @@ public static class ServiceRegisterExt
         else
             services.AddSingleton(accessorType, accessorImplementationType);
 
-        Registry.RegisterStateAccessor(implementation);
+        Registry.RegisterState(implementation);
         return services;
     }
 
@@ -153,7 +154,7 @@ public static class ServiceRegisterExt
                         continue;
                     }
 
-                    if (iface.IsGenericType)
+                    if (iface.IsGenericType && iface.GetGenericTypeDefinition() == reducerType)
                     {
                         services.AddStatePulseReducer(iface, type);
                         continue;
@@ -161,7 +162,7 @@ public static class ServiceRegisterExt
 
                     if (!iface.IsGenericType && iface == stateFeatureType)
                     {
-                        services.AddStatePulseStateAccessor(iface, type);
+                        services.AddStatePulseStateFeature(type);
                         continue;
                     }
 

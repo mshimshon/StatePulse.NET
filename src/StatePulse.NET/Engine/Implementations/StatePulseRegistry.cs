@@ -4,12 +4,15 @@ namespace StatePulse.Net.Engine.Implementations;
 internal class StatePulseRegistry : IStatePulseRegistry
 {
     private readonly List<Type> _knownStates = new();
-    private readonly Dictionary<Type, Func<object, object?>> _knownStatesStateGetter = new();
-    private readonly Dictionary<Type, Action<object, object?>> _knownStatesStateSetter = new();
+    private readonly Dictionary<Type, Type> _knownStateToAccessors = new();
+    private readonly Dictionary<Type, Func<object, object?>> _knownStateAccessorsStateGetter = new();
+    private readonly Dictionary<Type, Action<object, object?>> _knownStateAccessorsStateSetter = new();
 
     private readonly Dictionary<Type, Type> _knownEffects = new();
     private readonly Dictionary<Type, Type> _knownReducers = new();
+    private readonly Dictionary<Type, Type> _knownStateToReducers = new();
     private readonly Dictionary<Type, Func<object, object?[], object?>> _knownReducersReduceMethod = new();
+    private readonly Dictionary<Type, Func<object, object?>> _knownReducersTaskResult = new();
     private readonly List<Type> _knownActions = new();
     private readonly Dictionary<Type, Type> _knownActionValidators = new();
 
@@ -18,28 +21,35 @@ internal class StatePulseRegistry : IStatePulseRegistry
     public IReadOnlyDictionary<Type, Type> KnownReducers => _knownReducers;
     public IReadOnlyList<Type> KnownActions => _knownActions;
     public IReadOnlyDictionary<Type, Type> KnownActionValidators => _knownActionValidators;
-    public IReadOnlyDictionary<Type, Func<object, object?>> KnownStatesStateGetter => _knownStatesStateGetter;
-    public IReadOnlyDictionary<Type, Action<object, object?>> KnownStatesStateSetter => _knownStatesStateSetter;
+    public IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsStateGetter => _knownStateAccessorsStateGetter;
+    public IReadOnlyDictionary<Type, Action<object, object?>> KnownStateAccessorsStateSetter => _knownStateAccessorsStateSetter;
 
     public IReadOnlyDictionary<Type, Func<object, object?[], object?>> KnownReducersReduceMethod => _knownReducersReduceMethod;
+
+    public IReadOnlyDictionary<Type, Func<object, object?>> KnownReducersTaskResult => _knownReducersTaskResult;
+
+    public IReadOnlyDictionary<Type, Type> KnownStateToAccessors => _knownStateToAccessors;
 
     public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects.Add(effectType, interfaceType);
     public void RegisterReducer(Type reducerType, Type interfaceType)
     {
-        //if (_cachedReducerMethod == default)
-        var method = reducerType.GetMethod(nameof(IReducer<IStateFeature, IAction>.ReduceAsync))!;
-        //var task =
-        //    (Task)_cachedReducerMethod.Invoke(reducerService, new[] { stateProperty.GetValue(stateService)!, _action })!;
+        var reduceMethodName = nameof(IReducer<IStateFeature, IAction>.ReduceAsync);
+        var method = reducerType.GetMethod(reduceMethodName)!;
+        var returnTaskType = method.ReturnType;
+        var stateType = returnTaskType.GetGenericArguments()[0]; // This is TState
+        _knownReducersTaskResult[reducerType] = stateType.BuildTaskResultGetter();
         _knownReducersReduceMethod[reducerType] = method.CreateDynamicReflectionInvoker();
-
-
         _knownReducers.Add(reducerType, interfaceType);
     }
-    public void RegisterStateAccessor(Type stateType)
+    public void RegisterState(Type stateType)
     {
-        var property = stateType.GetProperty(nameof(IStateAccessor<object>.State))!;
-        _knownStatesStateGetter[stateType] = property.CreateGetterDynamic();
-        _knownStatesStateSetter[stateType] = property.CreateSetterDynamic();
+        var accessorType = typeof(IStateAccessor<>).MakeGenericType(stateType);
+        var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(stateType);
+
+        var property = accessorImplementationType.GetProperty(nameof(IStateAccessor<object>.State))!;
+        _knownStateAccessorsStateGetter[accessorType] = property.CreateGetterDynamic();
+        _knownStateAccessorsStateSetter[accessorType] = property.CreateSetterDynamic();
+        _knownStateToAccessors[stateType] = accessorType;
         _knownStates.Add(stateType);
     }
     public void RegisterAction(Type actionType) => _knownActions.Add(actionType);
