@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[2520],{4292:e=>{e.exports=JSON.parse('{"tag":{"label":"effects","permalink":"/tags/effects","allTagsPath":"/tags","count":1,"items":[{"id":"4 Create Effects","title":"The Effects","description":"What are Effects","permalink":"/gs-the-effect"}],"unlisted":false}}')}}]);

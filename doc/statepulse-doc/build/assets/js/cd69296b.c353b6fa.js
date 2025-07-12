@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[3478],{5477:e=>{e.exports=JSON.parse('{"tag":{"label":"isafeaction","permalink":"/tags/isafeaction","allTagsPath":"/tags","count":1,"items":[{"id":"Creating Actions","title":"The Actions","description":"Type of Actions","permalink":"/gs-the-action"}],"unlisted":false}}')}}]);

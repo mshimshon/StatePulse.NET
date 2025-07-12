@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[6527],{832:e=>{e.exports=JSON.parse('{"tag":{"label":"immutable","permalink":"/tags/immutable","allTagsPath":"/tags","count":1,"items":[{"id":"Create State","title":"The States","description":"Defining a State","permalink":"/gs-state"}],"unlisted":false}}')}}]);
