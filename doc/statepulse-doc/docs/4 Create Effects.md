@@ -1,11 +1,11 @@
 ---
-slug: gs-create-effect
-title: Create Effects
+slug: gs-the-effect
+title: The Effects
 tags: [blazor, effects, state-management, async, side-effects, statepulse, csharp, .net]
 sidebar_position: 4
 ---
 
-## Effects – Executing Logic Before State Updates
+## What are Effects
 
 **Effects** are units of logic that run **in response to an action**, before any associated reducers are invoked.
 
@@ -26,7 +26,7 @@ Reducers usually handle the `Result` action to update the state.
 
 Effects are usually named using the action’s name followed by the `Effect` suffix.
 
-### Create The Effect
+## Create The Effect
 
 ```csharp title="IncrementCounterEffect.cs"
 internal class IncrementCounterEffect : IEffect<IncrementCounterAction>
@@ -44,4 +44,48 @@ internal class IncrementCounterEffect : IEffect<IncrementCounterAction>
             .DispatchAsync();
     }
 }
+```
+
+## Effects Validators
+
+Effect validators allow you to **run checks before an effect executes**, deciding whether the effect should run or be skipped.
+
+They receive both the **action** and the **effect instance**, since a single action can trigger **multiple effects**.  
+By binding one or more validators to a specific effect, you can control its execution based on any logic you want.
+
+### Real-World Scenario
+
+Imagine you have an action, say `RequestContentAction`, that is triggered by **all users**:
+
+- For **non-subscribed users**, you want an effect that returns a limited preview or redirects to a subscription page.
+- For **subscribed members**, you want a different effect that fetches full content.
+
+Using effect validators, you can bind:
+
+- A validator on the **non-member effect** that checks if the user is *not* subscribed and only runs the effect in that case.
+- A validator on the **member effect** that checks if the user *is* subscribed.
+
+This way, **both effects respond to the same action but run conditionally based on user status.**
+
+### Benefits
+
+- Allows **clean separation** of logic for different user scenarios
+- Keeps action handling unified while supporting **multiple conditional outcomes**
+- Avoids complex branching inside effects themselves
+
+Effect validators are a powerful way to **condition effect execution** by checking custom conditions involving the action and the current state,  
+enabling flexible and maintainable multi-effect workflows based on business rules.
+
+if any validator fails the effect is skipped.
+
+```csharp title="IncrementEffectValidator.cs"
+internal class IncrementEffectValidator : IEffectValidator<IncrementCounterAction, IncrementCounterEffect>
+{
+    public Task<bool> Validate(IncrementCounterAction action)
+    {
+        if (action.Delay > 1000) return Task.FromResult(false);
+        return Task.FromResult(true);
+    }
+}
+
 ```
