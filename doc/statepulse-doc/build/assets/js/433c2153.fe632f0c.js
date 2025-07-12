@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[8293],{4541:e=>{e.exports=JSON.parse('{"tag":{"label":"reactive-ui","permalink":"/tags/reactive-ui","allTagsPath":"/tags","count":1,"items":[{"id":"Inject State","title":"Using State","description":"\ud83c\udfaf Manual State Hooking","permalink":"/gs-inject-state"}],"unlisted":false}}')}}]);

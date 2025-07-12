@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[7336],{8207:t=>{t.exports=JSON.parse('{"tag":{"label":"async-await","permalink":"/tags/async-await","allTagsPath":"/tags","count":1,"items":[{"id":"Inject State","title":"Using State","description":"\ud83c\udfaf Manual State Hooking","permalink":"/gs-inject-state"}],"unlisted":false}}')}}]);
