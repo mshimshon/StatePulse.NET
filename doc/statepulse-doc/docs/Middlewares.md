@@ -2,7 +2,7 @@
 slug: gs-the-middlewares
 title: The Middlewares
 tags: [blazor, reducer, state-management, pure-functions, async, statepulse, csharp, .net]
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 ## ⚙️ What are Middlewares?

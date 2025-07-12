@@ -1,7 +1,7 @@
 ---
 slug: /
 title: Get Started
-sidebar_position: 0
+sidebar_position: 1
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)

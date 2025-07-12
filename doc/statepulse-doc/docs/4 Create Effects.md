@@ -2,7 +2,7 @@
 slug: gs-the-effect
 title: The Effects
 tags: [blazor, effects, state-management, async, side-effects, statepulse, csharp, .net]
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 ## What are Effects

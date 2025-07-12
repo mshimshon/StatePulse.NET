@@ -13,12 +13,18 @@ namespace StatePulse.Net.Analyzers
 
         private static readonly LocalizableString Title = "The onStateChanged parameter of StateOf should not be a lambda";
         private static readonly LocalizableString MessageFormat = "The onStateChanged argument to 'StateOf' cannot be a lambda expression";
-        private static readonly LocalizableString Description = "The onStateChanged argument must be a real method.";
+        private static readonly LocalizableString Description = "The onStateChanged argument must be a method group, not an inline lambda.";
         private const string Category = "Usage";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId, Title, MessageFormat, Category,
-            DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            DiagnosticId,
+            Title,
+            MessageFormat,
+            Category,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: Description
+        );
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -26,50 +32,40 @@ namespace StatePulse.Net.Analyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
             context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            var invocation = (InvocationExpressionSyntax)context.Node;
-
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken);
-            var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
-
-            if (methodSymbol == null)
+            if (context.Node is not InvocationExpressionSyntax invocation)
                 return;
 
-            // Only proceed if method name is "StateOf"
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken);
+            if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
+                return;
+
+            // Ensure it's a method named StateOf
             if (methodSymbol.Name != "StateOf")
                 return;
 
-            // Check method's containing type full name: must be "StatePulse.Net.IStatePulse"
+            // Ensure it belongs to the correct interface
             var containingType = methodSymbol.ContainingType;
-            if (containingType == null)
-                return;
-
-            var fullTypeName = containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var fullTypeName = containingType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (fullTypeName != "global::StatePulse.Net.IStatePulse")
                 return;
 
-            // Check parameter count
-            if (methodSymbol.Parameters.Length < 2)
-                return;
-
+            // Check argument count
             var args = invocation.ArgumentList.Arguments;
             if (args.Count < 2)
                 return;
 
             var secondArg = args[1].Expression;
 
-            if (secondArg.IsKind(SyntaxKind.SimpleLambdaExpression) ||
-                secondArg.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            if (secondArg is LambdaExpressionSyntax lambda)
             {
-                var diagnostic = Diagnostic.Create(Rule, secondArg.GetLocation());
+                var diagnostic = Diagnostic.Create(Rule, lambda.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
     }
 }
