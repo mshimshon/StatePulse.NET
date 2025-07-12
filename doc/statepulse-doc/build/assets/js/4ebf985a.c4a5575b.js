@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkstatepulse_doc=self.webpackChunkstatepulse_doc||[]).push([[7235],{5398:e=>{e.exports=JSON.parse('{"tag":{"label":"state","permalink":"/tags/state","allTagsPath":"/tags","count":1,"items":[{"id":"Create State","title":"Create State","description":"Defining a State","permalink":"/gs-create-state"}],"unlisted":false}}')}}]);
