@@ -1,11 +1,15 @@
 ---
 sidebar_position: 1
 ---
-﻿[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net)](https://www.nuget.org/packages/StatePulse.NET)
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
 
+
+
 # StatePulse.NET
+### [Official Documentation](https://statepulse.net/)
 StatePulse.NET is a precision-tuned state and action management system that balances high-performance fire-and-forget operations with optional, internally controlled execution order when explicitly required. 
 It enables anti-duplication chaining for critical flows, preventing race conditions and ensuring consistent outcomes even under rapid user input or concurrent triggers. 
 Its internal tracking infrastructure provides near-zero overhead cancellation and dispatch control, drastically reducing inconsistency. 
@@ -170,7 +174,7 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
 var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
 ```
 
-## Blazor Example Usage
+### Blazor Example Usage
 
 ```csharp
 using StatePulse.Net;
