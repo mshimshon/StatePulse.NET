@@ -8,9 +8,10 @@ sidebar_position: 1
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net)](https://www.nuget.org/packages/StatePulse.NET)
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
 
+
+
 # StatePulse.NET
 ### [Official Documentation](https://statepulse.net/)
-
 StatePulse.NET is a precision-tuned state and action management system that balances high-performance fire-and-forget operations with optional, internally controlled execution order when explicitly required. 
 It enables anti-duplication chaining for critical flows, preventing race conditions and ensuring consistent outcomes even under rapid user input or concurrent triggers. 
 Its internal tracking infrastructure provides near-zero overhead cancellation and dispatch control, drastically reducing inconsistency. 
@@ -20,7 +21,7 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 ## ✨ Features
 - ⚡ **Fast Fire-and-Forget** — Executes actions immediately even tracked action are fire-and-forget.
 - 🛡 **Anti-Duplicate Dispatching** — Prevents redundant or overlapping actions that can cause race condition state inconsistency.
-- 🔍 **Validator System** — Supports multiple action validators for modular and reusable rule enforcement.
+- 🔍 **Effect Validator System** — Supports multiple effect validators for modular and reusable rule enforcement.
 - 🧪 **Synchronous Debug Mode** — Optional lockstep mode for testing, diagnostics, and `Task.WhenAll` pipelines.
 - 🧵 **DispatchTracker** — High-performance cancellation and deduplication logic via optimized concurrent tracking.
 

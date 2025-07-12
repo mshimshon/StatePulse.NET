@@ -16,7 +16,7 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 ## ✨ Features
 - ⚡ **Fast Fire-and-Forget** — Executes actions immediately even tracked action are fire-and-forget.
 - 🛡 **Anti-Duplicate Dispatching** — Prevents redundant or overlapping actions that can cause race condition state inconsistency.
-- 🔍 **Validator System** — Supports multiple action validators for modular and reusable rule enforcement.
+- 🔍 **Effect Validator System** — Supports multiple effect validators for modular and reusable rule enforcement.
 - 🧪 **Synchronous Debug Mode** — Optional lockstep mode for testing, diagnostics, and `Task.WhenAll` pipelines.
 - 🧵 **DispatchTracker** — High-performance cancellation and deduplication logic via optimized concurrent tracking.
 
