@@ -7,4 +7,6 @@ public record ProfileCardState : IStateFeature
     public string? ProfilePicture { get; set; }
     public string? ProfileId { get; set; }
     public DateTime LastUpdate { get; set; } = DateTime.UtcNow;
+    public string? UnitTestStringer { get; set; }
+
 }

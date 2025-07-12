@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using StatePulse.Net.Engine;
 using StatePulse.Net.Tests.App.Pulsars.Counter.Action;
 
 namespace StatePulse.Net.Tests.App.Components.Pages;

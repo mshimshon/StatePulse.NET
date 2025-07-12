@@ -40,8 +40,8 @@ internal abstract class PulseLazyStateBase : IStatePulse
 
             var accessor = (IStateAccessor<TState>)service;
             _globalStash.Register(this);
-            accessor.StateChangedNoDetails -= OnStateChanged;
-            accessor.StateChangedNoDetails += OnStateChanged;
+            accessor.OnStateChangedNoDetails -= OnStateChanged;
+            accessor.OnStateChangedNoDetails += OnStateChanged;
             return accessor.State;
         }
     }
@@ -70,7 +70,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
         _disposed = true;
         _globalStash.UnRegister(this);
         foreach (var item in GetState().Values)
-            item.StateChangedNoDetails -= OnStateChanged;
+            item.OnStateChangedNoDetails -= OnStateChanged;
 
     }
 

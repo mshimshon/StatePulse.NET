@@ -26,13 +26,13 @@ public class StatePulseInitTests : TestBase
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
-        stateAccessor.StateChanged += (sender, state) =>
+        stateAccessor.OnStateChanged += (sender, state) =>
         {
             Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
         };
         // Dispatch action that changes state
         var action = new ProfileCardDefineAction();
-        await dispatcher.Prepare(() => action).UsingSynchronousMode().DispatchAsync();
+        await dispatcher.Prepare(() => action).Await().DispatchAsync();
 
         Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
     }
@@ -41,9 +41,9 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingEffectShouldCorrectlyTriggerActions()
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         // Dispatch action that changes state
-        await dispatcher.Prepare<MainMenuOpenAction>().UsingSynchronousMode().DispatchAsync();
+        await dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
 
         Assert.NotEmpty(stateAccessor.State.NavigationItems ?? new());
     }
@@ -54,16 +54,12 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingEffectShouldCorrectlyFailActionValidator(string name)
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
-        ValidationResult? validation = default;
         await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-            .HandleActionValidation(p => validation = p)
-            .UsingSynchronousMode()
-            .DispatchAsync();
-
-        Assert.True(validation != default);
-        Assert.True(validation.IsValid && name != "Error" || !validation.IsValid && name == "Error");
+            .Await().DispatchAsync();
+        if (name == "Error") Assert.True(stateAccessor.State.UnitTestStringer == default);
+        else Assert.True(stateAccessor.State.UnitTestStringer == name);
     }
 
     [Fact]
@@ -74,7 +70,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         int changes = 0;
-        stateAccessor.StateChanged += (s, state) =>
+        stateAccessor.OnStateChanged += (s, state) =>
         {
             changes++;
         };
@@ -103,7 +99,7 @@ public class StatePulseInitTests : TestBase
         }
         foreach (var item in result)
             Assert.Equal("Profile 2", item);
-
+        Assert.True(result.Count > 0);
     }
 
     [Fact]
@@ -114,7 +110,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         int changes = 0;
-        stateAccessor.StateChanged += (s, state) =>
+        stateAccessor.OnStateChanged += (s, state) =>
         {
             changes++;
         };
@@ -124,13 +120,13 @@ public class StatePulseInitTests : TestBase
         {
             var a = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, "Profile 1")
-                .UsingSynchronousMode()
+                .Await()
                 .DispatchAsync();
 
 
             var b = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, "Profile 2")
-                .UsingSynchronousMode()
+                .Await()
                 .DispatchAsync();
             await Task.WhenAll(a, b);
             result.Add(stateAccessor.State.ProfileName!);
