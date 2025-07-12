@@ -1,4 +1,9 @@
-﻿![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+---
+slug: /
+title: Get Started
+sidebar_position: 1
+---
+﻿[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net)](https://www.nuget.org/packages/StatePulse.NET)
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
 
@@ -144,9 +149,9 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
     .HandleActionValidation(p => validation = p)
     .DispatchAsync();
 
-// You can trigger awaited pipeline... this will await the whole pipeline, otherwise you just await until action is send to dispatch pool.
+// You can trigger synchronously... this will await the whole pipeline, otherwise you just await until action is send to dispatch pool.
 await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
-    .Await()
+    .Sync()
     .DispatchAsync();
 
 // if the action is implementing ISafeState, the dispatch will always run asSafe=true but an action not implementing ISafeAction will
@@ -167,7 +172,7 @@ await dispatcher.Prepare<ProfileCardDefineAction>().With(p => p.TestData, name)
 var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
 ```
 
-## Blazor Example Usage
+### Blazor Example Usage
 
 ```csharp
 using StatePulse.Net;
@@ -193,65 +198,3 @@ public partial class CounterView : ComponentBase
     
 }
 ```
-
-## **Middlewares**
-Middleware in StatePulse.NET provides a clean and centralized way to intercept actions as they are dispatched. 
-It’s used to handle cross-cutting concerns such as logging, authorization checks, analytics, telemetry, or dynamic action filtering,
-without scattering logic across components or effects. By placing middleware at the core of the dispatch pipeline, you can modify, delay, 
-or block actions in a consistent and testable manner, making your application's behavior more transparent and maintainable.
-
-### **Dispatch Middlewares**:
-```csharp
-using StatePulse.Net;
-
-public partial class CounterView : IDispatcherMiddleware
-{
-
-    // METHOD 1:
-    [Inject] public IStatePulse PulseState { get; set; } = default!; // Handles State Accessor
-
-    // This is for convienience always use this method or directly PulseState.StateOf<CounterState>(this).Value
-    // Never assign State Instance variable as it will not update... 
-    // Never use lambda it will throw exception as WeakREference is fundamatally flawed and disposes of lambda even when its object is alive.
-    private CounterState state => PulseState.StateOf<CounterState>(()=>this, OnUpdate);
-    
-    private async Task OnUpdate() => await InvokeAsync(StateHadChanged);
-
-    // METHOD 2: 
-    // Inject direct state but injecting the state directly requires you to handle onchanged events by sub/unsub in lifecycle
-    // Or to create a basecomponent system similar to other state management systems.
-    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
-
-    
-}
-```
-
-## 🔖 Versioning Policy
-
-### 🚧 Pre-1.0.0 (`0.x.x`)
-
-- The project is considered **Work In Progress**.
-- **Breaking changes can occur at any time** without notice.
-- No guarantees are made about stability or upgrade paths.
-
-### ✅ Post-1.0.0 (`1.x.x` and beyond)
-
-Follows a common-sense semantic versioning pattern:
-
-- **Major (`X.0.0`)**  
-  
-  - Introduces major features or architectural changes  
-  - May include well documented **breaking changes**
-
-- **Minor (`1.X.0`)**  
-  
-  - Adds new features or enhancements  
-  - May include significant bug fixes  
-  - **No breaking changes**
-
-- **Patch (`1.0.X`)**  
-  
-  - Hotfixes or urgent bug fixes  
-  - Safe to upgrade  
-  - **No breaking changes**
-  
