@@ -9,7 +9,7 @@
 		<AssemblyName>StatePulse.Net.Abstractions</AssemblyName>
 		<RootNamespace>StatePulse.Net</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageReadmeFile>..\..\doc\statepulse-doc\docs\0.Versions.md</PackageReadmeFile>
+		<PackageReadmeFile>0.Versions.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
 		<Copyright>Maksim Shimshon © 2025</Copyright>
 		<Product>StatePulse.Net.Abstractions</Product>
@@ -27,11 +27,15 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
-		<None Include="..\..\LICENSE">
+		<None Include="..\..\doc\statepulse-doc\docs\0.Versions.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
 		<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\LICENSE">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
