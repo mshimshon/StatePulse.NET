@@ -1,5 +1,4 @@
-﻿using StatePulse.Net.Abstractions;
-
+﻿
 namespace StatePulse.Net;
 /// <summary>
 /// Inject to your components and effects to dispatch new actions.

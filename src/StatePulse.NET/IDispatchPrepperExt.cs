@@ -1,4 +1,4 @@
-﻿using StatePulse.Net.Abstractions;
+﻿using StatePulse.Net;
 using StatePulse.Net.Engine.Extensions;
 using System.Linq.Expressions;
 

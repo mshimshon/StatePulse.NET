@@ -2,13 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
+		<LangVersion>12.0</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Title>StatePulse.Net.Abstractions</Title>
 		<AssemblyName>StatePulse.Net.Abstractions</AssemblyName>
 		<RootNamespace>StatePulse.Net</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReadmeFile>..\..\doc\statepulse-doc\docs\0.Versions.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
 		<Copyright>Maksim Shimshon © 2025</Copyright>
 		<Product>StatePulse.Net.Abstractions</Product>
@@ -35,9 +36,16 @@
 			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
-	<ItemGroup>
+	<!-- For .NET 6 and .NET Standard, use version 7.x -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+	</ItemGroup>
+
+	<!-- For .NET 8, use version 9.x -->
+	<ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
 	</ItemGroup>
+	
 	<ItemGroup>
 		<ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
 			<ReferenceOutputAssembly>False</ReferenceOutputAssembly>

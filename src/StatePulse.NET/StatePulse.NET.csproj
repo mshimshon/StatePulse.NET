@@ -1,20 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks> 
+    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
+	  <LangVersion>12.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>StatePulse.NET</Title>
     <AssemblyName>StatePulse.Net</AssemblyName>
     <RootNamespace>StatePulse.Net</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>0.Versions.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
     <Copyright>Maksim Shimshon © 2025</Copyright>
     <Product>StatePulse.NET</Product>
     <Company />
     <Authors>Maksim Shimshon</Authors>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
@@ -30,14 +31,22 @@
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
-      <None Include="..\..\README.md">
+      <None Include="..\..\doc\statepulse-doc\docs\0.Versions.md">
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
     </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
-    </ItemGroup>
+	
+	<!-- For .NET 6 and .NET Standard, use version 7.x -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+	</ItemGroup>
+
+	<!-- For .NET 8, use version 9.x -->
+	<ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
+	</ItemGroup>
+
     <ItemGroup>
     <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
     <ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">

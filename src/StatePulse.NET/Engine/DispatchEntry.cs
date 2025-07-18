@@ -1,7 +1,6 @@
 ﻿namespace StatePulse.Net.Engine;
 
 using StatePulse.Net;
-using StatePulse.Net.Abstractions;
 public class DispatchEntry<TAction> where TAction : IAction
 {
     private readonly IDispatcherPrepper<TAction> _action;

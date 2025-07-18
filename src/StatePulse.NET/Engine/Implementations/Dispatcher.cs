@@ -1,6 +1,4 @@
-﻿using StatePulse.Net.Abstractions;
-
-namespace StatePulse.Net.Engine.Implementations;
+﻿namespace StatePulse.Net.Engine.Implementations;
 internal class Dispatcher : IDispatcher, IDispatchHandler
 {
     private readonly IServiceProvider _serviceProvider;

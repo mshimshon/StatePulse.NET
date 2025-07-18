@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net;
+using StatePulse.Net.Engine;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
