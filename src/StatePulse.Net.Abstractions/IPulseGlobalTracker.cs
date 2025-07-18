@@ -1,4 +1,4 @@
-﻿namespace StatePulse.Net.Engine;
+﻿namespace StatePulse.Net;
 public interface IPulseGlobalTracker
 {
     public int ActivePulsars { get; }

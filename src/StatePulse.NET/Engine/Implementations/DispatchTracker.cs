@@ -1,5 +1,5 @@
-﻿using System.Collections.Concurrent;
-
+﻿using StatePulse.Net.Abstractions;
+using System.Collections.Concurrent;
 namespace StatePulse.Net.Engine.Implementations;
 internal class DispatchTracker<TAction> : IDispatchTracker<TAction> where TAction : IAction
 {

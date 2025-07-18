@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
-
-namespace StatePulse.Net.Engine;
+namespace StatePulse.Net.Engine.Implementations;
 internal sealed class PulseLazyStateBlazorServer : PulseLazyStateBase
 {
     private readonly ConcurrentDictionary<Type, IStateAccessor<object>> _stash = new();

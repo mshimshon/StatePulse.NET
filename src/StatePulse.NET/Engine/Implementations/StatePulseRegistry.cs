@@ -1,6 +1,8 @@
 ﻿using StatePulse.Net.Engine.Extensions;
 
 namespace StatePulse.Net.Engine.Implementations;
+
+using StatePulse.Net;
 internal class StatePulseRegistry : IStatePulseRegistry
 {
     private readonly List<Type> _knownStates = new();

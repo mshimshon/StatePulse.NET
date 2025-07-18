@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
+using StatePulse.Net.Abstractions;
 using StatePulse.Net.Configuration;
 using System.Collections.Concurrent;
 using System.Reflection;

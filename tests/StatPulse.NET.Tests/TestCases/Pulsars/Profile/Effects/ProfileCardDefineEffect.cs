@@ -2,7 +2,6 @@
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.Shared.Contracts.Response;
-
 namespace StatePulse.NET.Tests.TestCases.Pulsars.Profile.Effects;
 internal class ProfileCardDefineEffect : IEffect<ProfileCardDefineAction>
 {

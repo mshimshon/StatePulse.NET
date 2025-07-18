@@ -1,6 +1,4 @@
-﻿using StatePulse.Net.Engine;
-
-namespace StatePulse.Net;
+﻿namespace StatePulse.Net.Engine;
 public interface IDispatchTracker<TAction> where TAction : IAction
 {
     public EventHandler<DispatchEntry<TAction>>? OnCancel { get; set; }

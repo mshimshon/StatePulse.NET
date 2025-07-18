@@ -1,4 +1,8 @@
 ﻿namespace StatePulse.Net.Engine.Implementations;
+
+using StatePulse.Net;
+using StatePulse.Net.Engine;
+
 internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<TState> where TState : IStateFeature
 {
     public StateAccessor()

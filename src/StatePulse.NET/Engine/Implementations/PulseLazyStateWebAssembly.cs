@@ -1,6 +1,5 @@
-﻿namespace StatePulse.Net.Engine;
+﻿namespace StatePulse.Net.Engine.Implementations;
 using System;
-
 internal sealed class PulseLazyStateWebAssembly : PulseLazyStateBase
 {
     private readonly Dictionary<Type, IStateAccessor<object>> _stash = new();

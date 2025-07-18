@@ -1,4 +1,6 @@
 ﻿namespace StatePulse.Net.Engine.Implementations;
+
+using StatePulse.Net;
 internal class PulseGlobalTracker : IPulseGlobalTracker
 {
     private readonly object _lock = new();

@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Tests.App", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Analyzers", "StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj", "{62E34523-4C01-492E-9957-A14F70799C71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Abstractions", "StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj", "{EEC112B4-18B6-414F-BC15-F525B2C90AEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{62E34523-4C01-492E-9957-A14F70799C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62E34523-4C01-492E-9957-A14F70799C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62E34523-4C01-492E-9957-A14F70799C71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

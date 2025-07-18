@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks> 
+    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks> 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>StatePulse.NET</Title>
@@ -39,6 +39,7 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
     </ItemGroup>
     <ItemGroup>
+    <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
     <ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
       <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
     </ProjectReference>
