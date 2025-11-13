@@ -19,7 +19,5 @@ jobs:
         with:
           dotnet-version: '8.0.x'
           
-      - run: dotnet restore
-      
-      - run: dotnet build -c Release --no-restore -f net8.0  
-      - run: dotnet test -c Release --no-build --verbosity normal -f net8.0
+      - run: dotnet restore tests/StatePulse.NET.Tests/StatePulse.NET.Tests.csproj
+      - run: dotnet test tests/StatePulse.NET.Tests/StatePulse.NET.Tests.csproj -c Release --no-restore --verbosity normal
