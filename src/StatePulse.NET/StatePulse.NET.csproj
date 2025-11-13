@@ -15,7 +15,7 @@
     <Product>StatePulse.NET</Product>
     <Company />
     <Authors>Maksim Shimshon</Authors>
-    <Version>1.0.1</Version>
+    <Version>1.0.1.1</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
@@ -47,7 +47,17 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
 	</ItemGroup>
 
-    <ItemGroup>
+	<!-- Reference Project Directly while not packing -->
+	<ItemGroup Condition="'$(IsPackable)' != 'true'">
+		<ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
+	</ItemGroup>
+
+	<!-- Reference Package at Pack Time -->
+	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<PackageReference Include="StatePulse.Net.Abstractions" Version="*" />
+	</ItemGroup>
+	
+	<ItemGroup>
     <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
     <ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
       <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
