@@ -2,8 +2,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net)](https://www.nuget.org/packages/StatePulse.NET)
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
-
-
+[![Build](https://github.com/mshimshon/StatePulse.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/mshimshon/StatePulse.NET/actions/workflows/ci.yml)
+[![Deploy](https://github.com/mshimshon/StatePulse.NET/actions/workflows/deploy.yml/badge.svg)](https://github.com/mshimshon/StatePulse.NET/actions/workflows/deploy.yml)
 
 # StatePulse.NET
 ### [Official Documentation](https://statepulse.net/)
