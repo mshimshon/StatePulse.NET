@@ -21,6 +21,5 @@ jobs:
       - run: dotnet workload install android ios wasm-tools
       - run: dotnet restore
       
-      - run: dotnet build -c Release --no-restore
-      
-      - run: dotnet test -c Release --no-build --verbosity normal
+      - run: dotnet build -c Release --no-restore -f net8.0  
+      - run: dotnet test -c Release --no-build --verbosity normal -f net8.0
