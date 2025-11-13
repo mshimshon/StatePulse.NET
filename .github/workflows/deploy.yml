@@ -22,6 +22,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      
+      - run: dotnet workload install android wasm-tools
       - run: dotnet pack -c Release -o ../artifacts
       - run: dotnet nuget push ../artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
