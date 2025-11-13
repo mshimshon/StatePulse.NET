@@ -4,11 +4,16 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
   workflow_dispatch:
-
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
     defaults:
       run:
         working-directory: ./src
