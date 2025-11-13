@@ -15,7 +15,7 @@
     <Product>StatePulse.NET</Product>
     <Company />
     <Authors>Maksim Shimshon</Authors>
-    <Version>1.0.1.1</Version>
+    <Version>1.0.2</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
