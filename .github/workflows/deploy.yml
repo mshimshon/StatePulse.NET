@@ -22,7 +22,7 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
+      aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: | 
@@ -31,7 +31,7 @@ jobs:
             10.0.x
       
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore src/StatePulse.NET.sln
       
       - name: Pack StatePulse.Net.Abstractions
         run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release -o ./artifacts
