@@ -30,7 +30,9 @@ jobs:
             10.0.x
       
       - name: Restore dependencies
-        run: dotnet restore src/StatePulse.NET.sln
+        run: |
+          dotnet restore src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj
+          dotnet restore src/StatePulse.NET/StatePulse.NET.csproj
       
       - name: Pack StatePulse.Net.Abstractions
         run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release -o ./artifacts
