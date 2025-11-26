@@ -25,7 +25,10 @@ jobs:
       
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: | 
+            8.0.x
+            9.0.x
+            10.0.x
       
       - name: Pack StatePulse.Net.Abstractions
         run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release -o ./artifacts
