@@ -41,7 +41,8 @@ jobs:
       
       - name: Push StatePulse.Net.Abstractions
         run: dotnet nuget push ./artifacts/StatePulse.Net.Abstractions.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        
+      - name: Wait for NuGet indexing
+        run: sleep 120
   deploy-core:
     runs-on: ubuntu-latest
     if: |
@@ -52,8 +53,7 @@ jobs:
        startsWith(github.event.workflow_run.head_branch, 'refs/tags/v'))
     
     steps:
-      - name: Wait for NuGet indexing
-        run: sleep 120
+
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
