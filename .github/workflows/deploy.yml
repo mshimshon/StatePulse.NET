@@ -44,6 +44,7 @@ jobs:
       - name: Wait for NuGet indexing
         run: sleep 120
   deploy-core:
+    needs: deploy-abstraction
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
