@@ -69,7 +69,7 @@
 		<ItemGroup>
 			<PackageFiles Include="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" />
 		</ItemGroup>
-		<Copy SourceFiles="@(PackageFiles)" DestinationFolder="..\..\..\..\nupkgs" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+		<Copy SourceFiles="@(PackageFiles)" DestinationFolder="..\..\..\..\nupkgs" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="'$(BuildingInsideVisualStudio)' == 'true'" />
 	</Target>
 
 </Project>
