@@ -11,20 +11,14 @@ public partial class Counter : ComponentBase
     [Inject] IDispatcher _dispatcher { get; set; } = default!;
     [Inject] IPulseGlobalTracker _pulseGlobalTracker { get; set; } = default!;
     [Inject] IStatePulseRegistry _statePulseRegistry { get; set; } = default!;
-    [Inject] IStateAccessor<CounterSingletonState> _stateAccessor { get; set; } = default!;
-
+    private int Update { get; set; }
     
     public CounterSingletonState Shared => _statePulse.StateOf<CounterSingletonState>(() => this, OnUpdate);
-    //public CounterState State => _statePulse.StateOf<CounterState>(() => this, OnUpdate);
-    private async Task OnUpdate()
-    {
-        Debugger.Break();
-        StateHasChanged();
-    }
+    public CounterState State => _statePulse.StateOf<CounterState>(() => this, OnUpdate);
+    private async Task OnUpdate() => await InvokeAsync(StateHasChanged);
 
     protected override void OnInitialized()
     {
-        //_stateAccessor.OnStateChangedNoDetails += (_, e)=> StateHasChanged();
     }
     private async Task SingletonIncrease()
     {
