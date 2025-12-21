@@ -6,7 +6,6 @@ public class ConfigureOptions
     /// <summary>
     /// Scoped on WASM = Singleton, Singleton on Blazor Server = Chaos Data Leakage
     /// </summary>
-    public Lifetime ServiceLifetime { get; set; } = Lifetime.Scoped;
     public MiddlewareEffectBehavior MiddlewareEffectBehavior { get; set; } = MiddlewareEffectBehavior.PerGroupEffects;
     public MiddlewareTaskBehavior MiddlewareTaskBehavior { get; set; } = MiddlewareTaskBehavior.DoNotAwait;
     public DispatchEffectBehavior DispatchEffectBehavior { get; set; } = DispatchEffectBehavior.Parallel;

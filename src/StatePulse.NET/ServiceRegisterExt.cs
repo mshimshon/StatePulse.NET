@@ -47,8 +47,13 @@ public static class ServiceRegisterExt
     private static IServiceCollection AddStatePulseEffect(this IServiceCollection services, Type iFace, Type implementation)
     {
         if (services.IsImplementationRegistered(iFace, implementation)) return services;
+        bool isSingletonFeature = implementation.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEffectSingleton<>));
 
-        services.AddTransient(iFace, implementation);
+        if(!isSingletonFeature)
+            services.AddScoped(iFace, implementation);
+        else 
+            services.AddSingleton(iFace, implementation);
+
         Registry.RegisterEffect(iFace, implementation);
         return services;
     }
@@ -67,28 +72,18 @@ public static class ServiceRegisterExt
 
     {
         if (services.IsReducerRegistered(iFace)) return services;
-
-        services.AddTransient(iFace, implementation);
-        Registry.RegisterReducer(iFace, implementation);
+        bool isSingleton = implementation.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReducerSingleton<,>));
+        if (!isSingleton)
+         services.AddScoped(iFace, implementation);
+        else
+         services.AddSingleton(iFace, implementation);
+            Registry.RegisterReducer(iFace, implementation);
         return services;
     }
     public static IServiceCollection AddStatePulseStateFeature<TImplementation>(this IServiceCollection services)
         where TImplementation : IStateFeature
     => services.AddStatePulseStateFeature(typeof(TImplementation));
-    //private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
-    //{
-    //    var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
-    //    var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(implementation);
 
-    //    if (services.IsStateAccessorRegistered(accessorImplementationType)) return services;
-    //    if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
-    //        services.AddScoped(accessorType, accessorImplementationType);
-    //    else
-    //        services.AddSingleton(accessorType, accessorImplementationType);
-
-    //    Registry.RegisterState(implementation);
-    //    return services;
-    //}
     private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
     {
         var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
@@ -125,7 +120,11 @@ public static class ServiceRegisterExt
 
     {
         if (services.IsEffectValidatorImplementationRegistered(implementation)) return services;
-        services.AddTransient(iFace, implementation);
+        bool isSingleton = implementation.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEffectValidator<,>));
+        if(isSingleton)
+            services.AddScoped(iFace, implementation);
+        else
+            services.AddSingleton(iFace, implementation);
         Registry.RegisterEffectValidator(iFace, implementation);
         return services;
     }
@@ -140,10 +139,8 @@ public static class ServiceRegisterExt
         var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(implementation);
         if (services.IsDispatchTrackerRegistered(dispatchTracker)) return services;
         Registry.RegisterAction(implementation);
-        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
-            services.AddScoped(dispatchTrackerIface, dispatchTracker);
-        else
-            services.AddSingleton(dispatchTrackerIface, dispatchTracker);
+        services.AddScoped(dispatchTrackerIface, dispatchTracker);
+
         return services;
     }
 
@@ -186,7 +183,14 @@ public static class ServiceRegisterExt
                         (iface == effectMiddlewareType || iface == reducerMiddlewareType || iface == dispatchMiddlewareType))
                     {
                         if (services.IsImplementationRegistered(type, iface)) continue;
-                        services.AddTransient(iface, type);
+                        bool isSingletonEffectMiddleware= typeof(IEffectMiddlewareSingleton).IsAssignableFrom(type);
+                        bool isSingletonReducerMiddleware= typeof(IReducerMiddleware).IsAssignableFrom(type);
+                        bool isSingletonDispatcherMiddleware= typeof(IDispatcherMiddlewareSingleton).IsAssignableFrom(type);
+                        bool isSingleton = isSingletonEffectMiddleware || isSingletonReducerMiddleware || isSingletonDispatcherMiddleware;
+                        if (!isSingleton)
+                            services.AddScoped(iface, type);
+                        else
+                            services.AddSingleton(iface, type);
                         continue;
                     }
 

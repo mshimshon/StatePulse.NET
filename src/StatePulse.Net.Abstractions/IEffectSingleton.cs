@@ -1,0 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace StatePulse.Net;
+
+public interface IEffectSingleton<TAction> : IEffect<TAction>
+    where TAction : IAction
+{
+}
