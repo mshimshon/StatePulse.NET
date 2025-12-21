@@ -4,11 +4,10 @@ using StatePulse.Net.Configuration;
 using System.Collections.Concurrent;
 using System.Reflection;
 namespace StatePulse.Net.Engine.Implementations;
-internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAction>
+internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAction>
     where TAction : IAction
     where TActionChain : IAction
 {
-    private bool _forceSyncronous;
     private readonly TAction _action;
     private readonly IServiceProvider _serviceProvider;
     private readonly IStatePulseRegistry _statePulseRegistry;
@@ -76,6 +75,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         {
             dispatchMiddlewareTasks.Add(item.BeforeDispatch(_action));
         }
+        
         await Task.WhenAll(dispatchMiddlewareTasks);
         // we are tracking next chain key only when there is an entry point to avoid tracker during fast dispatch.
         // by default it will be null otherwise chain should be passed down the next calls.
@@ -95,9 +95,20 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             var dispatcherService = _serviceProvider.GetRequiredService<IDispatchFactory>();
             if (nextChain != default)
                 await dispatcherService.DispatchHandler.MaintainChainKey(nextChain);
+            if (_dispatchOrdering == DispatchOrdering.ReducersFirst)
+                await RunReducer(nextChain);
 
-            await RunEffects(nextChain, dispatcherService);
-            await RunReducer(nextChain);
+            if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+            {
+                _ = RunEffects(nextChain, dispatcherService);
+            }
+            else
+            {
+                await RunEffects(nextChain, dispatcherService);
+            }
+
+            if (_dispatchOrdering == DispatchOrdering.EffectsFirst)
+                await RunReducer(nextChain);
 
         }
         catch
@@ -120,14 +131,10 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 #pragma warning restore S2737 // "catch" clauses should do more than rethrow
 
     }
-
-    public IDispatcherPrepper<TAction> Await()
-    {
-        _forceSyncronous = true;
-        return this;
-    }
     public async Task<Guid> DispatchAsync(bool asSafe = false)
     {
+
+        ValidateConfiguration();
         if ((_action is ISafeAction) || asSafe)
             return await DispatchSafeAsync();
         await DispatchFastAsync();
@@ -136,7 +143,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
     private Task RunMiddlewareEffect(IEnumerable<IEffectMiddleware> middlewares, Func<IEffectMiddleware, Task> func, Func<MiddlewareEffectBehavior, bool> conditionBehavior)
     {
-        if (!conditionBehavior(ServiceRegisterExt._configureOptions.MiddlewareEffectBehavior))
+        if (!conditionBehavior(ServiceRegisterExt.ConfigureOptions.MiddlewareEffectBehavior))
             return Task.CompletedTask;
 
         var effectMiddlewaresTasks = new List<Task>();
@@ -168,7 +175,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
         var effectMiddlewares = _serviceProvider.GetServices<IEffectMiddleware>();
         var effectMiddlewareTasks = RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
 
-        if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+        if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
             await effectMiddlewareTasks;
 
         foreach (var effectService in effectServices)
@@ -177,7 +184,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
                 break;
             effectMiddlewareTasks = RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
 
-            if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+            if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                 await effectMiddlewareTasks;
 
             bool validationPassed = await RunEffectValidators(effectService!.GetType(), effectMiddlewares);
@@ -192,19 +199,40 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
             if (del(_action, dispatcherService.Dispatcher) is Task effectTask)
             {
                 effects.Add(effectTask);
-                if (ServiceRegisterExt._configureOptions.DispatchEffectBehavior == DispatchEffectBehavior.Sequential)
+                if (_dispatchEffectBehavior == DispatchEffectBehavior.Parallel || _dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+                    _ = effectTask;
+                else
                     await effectTask;
             }
-            if (ServiceRegisterExt._configureOptions.MiddlewareEffectBehavior == MiddlewareEffectBehavior.PerIndividualEffect)
-                await effectMiddlewareTasks;
-            var effectMiddlewareAfterTasks = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
-            if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-                await effectMiddlewareAfterTasks;
-        }
-        await Task.WhenAll(effects);
-        await effectMiddlewareTasks;
 
-        _ = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
+            if (ServiceRegisterExt.ConfigureOptions.MiddlewareEffectBehavior == MiddlewareEffectBehavior.PerIndividualEffect)
+            {
+                if  (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget) 
+                    _ = effectMiddlewareTasks;
+                else 
+                    await effectMiddlewareTasks;
+            }
+            
+
+            var effectMiddlewareAfterTasks = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
+            if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+                    _ = effectMiddlewareAfterTasks;
+                else
+                    await effectMiddlewareAfterTasks;
+
+        }
+        if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+        {
+            _ = Task.WhenAll(effects);
+            _ = effectMiddlewareTasks;
+        }else
+        {
+            await Task.WhenAll(effects);
+            await effectMiddlewareTasks;
+        }
+
+           _ = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
     }
     private async Task<bool> RunEffectValidators(Type effectService, IEnumerable<IEffectMiddleware> effectMiddlewares)
     {
@@ -256,7 +284,7 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
                 var currentState = _statePulseRegistry.KnownStateAccessorsStateGetter[stateAccessorType](stateService)!;
                 var middlewareTasks = RunMiddlewareReducer(middlewares, p => p.BeforeReducing(currentState, _action));
-                if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;
 
                 var reduceTask = (Task)_statePulseRegistry.KnownReducersReduceMethod[reducerType](reducerService,
@@ -273,11 +301,12 @@ internal class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAc
 
                 _statePulseRegistry.KnownStateAccessorsStateSetter[stateAccessorType](stateService, newState);
                 middlewareTasks = RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
-                if (ServiceRegisterExt._configureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
+                if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;
             }
         }
     }
+
 
 }
 

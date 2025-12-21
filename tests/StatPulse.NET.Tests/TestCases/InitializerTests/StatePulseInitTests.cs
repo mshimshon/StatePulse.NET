@@ -52,7 +52,7 @@ public class StatePulseInitTests : TestBase
     [Theory]
     [InlineData("Test")]
     [InlineData("Error")]
-    public async Task DispatchingEffectShouldCorrectlyFailActionValidator(string name)
+    public async Task DispatchingEffectShouldCorrectlyFailEffectValidator(string name)
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();

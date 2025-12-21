@@ -64,22 +64,6 @@ public record ProfileCardDefineAction : IAction
 
 ```
 
-### **Define Actions Validator** (Optional):
-
-```csharp
-/*
-You are not required to create have an action validator but it is very useful when you have business logic that conditionally only contionally fires.
-When validation fails it ignores the dispatch and move on.
-*/
-internal class ProfileCardDefineActionValidator : IActionValidator<ProfileCardDefineAction>
-{
-    public void Validate(ProfileCardDefineAction action, ref ValidationResult result)
-    {
-        if (action.TestData == "Error")
-            result.AddError("ErrorName", "Name Cannot be Error");
-    }
-}
-```
 
 ### **Define Effect**:
 
@@ -103,6 +87,25 @@ internal class ProfileCardDefineEffect : IEffect<ProfileCardDefineAction>
 
 }
 
+
+
+### **Define Effect Validator** (Optional):
+
+```csharp
+/*
+* This is the best way to define clean conditional effects, it either run or not... this is not meant for triggering errors.
+* This is meant for optional/condition effects to either run or not base on the action settings...
+*/
+internal class ProfileCardDefineActionValidator : IEffectValidator<ProfileCardDefineAction, ProfileCardDefineEffect>
+{
+    public Task<bool> Validate(ProfileCardDefineAction action)
+    {
+        if (action.TestData == "Error")
+            return Task.FromResult(false);
+        return Task.FromResult(true);
+    }
+}
+```
 
 ```
 

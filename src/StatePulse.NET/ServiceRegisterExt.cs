@@ -7,20 +7,18 @@ namespace StatePulse.Net;
 public static class ServiceRegisterExt
 {
     private static bool _scanned;
-    public static ConfigureOptions _configureOptions = new ConfigureOptions();
+    public static ConfigureOptions ConfigureOptions { get; set; } =  new ConfigureOptions();
     private static StatePulseRegistry Registry = new StatePulseRegistry();
-    /// <summary>
-    /// Also call AddStatePulseScan otherwise you will have to manually register all Effects, Reducers, StateAccessors and also register them inside IStatePulseRegistry.
-    /// </summary>
-    /// <param name="services"></param>
+
+
     public static IServiceCollection AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
     {
         // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
-        configure(_configureOptions);
-
-        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
+        configure(ConfigureOptions);
+        ConfigureOptions.ValidateConfiguration();
+        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
             services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         else
             services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
@@ -28,8 +26,8 @@ public static class ServiceRegisterExt
         services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
         services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
         services.AddSingleton<IStatePulseRegistry>(Registry);
-        if (_configureOptions.ScanAssemblies.Count() > 0)
-            services.ScanStatePulseAssemblies(_configureOptions.ScanAssemblies);
+        if (ConfigureOptions.ScanAssemblies.Count() > 0)
+            services.ScanStatePulseAssemblies(ConfigureOptions.ScanAssemblies);
 
         return services;
     }
@@ -83,7 +81,7 @@ public static class ServiceRegisterExt
         var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(implementation);
 
         if (services.IsStateAccessorRegistered(accessorImplementationType)) return services;
-        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
+        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
             services.AddScoped(accessorType, accessorImplementationType);
         else
             services.AddSingleton(accessorType, accessorImplementationType);
@@ -122,7 +120,7 @@ public static class ServiceRegisterExt
         var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(implementation);
         if (services.IsDispatchTrackerRegistered(dispatchTracker)) return services;
         Registry.RegisterAction(implementation);
-        if (_configureOptions.ServiceLifetime == Lifetime.Scoped)
+        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
             services.AddScoped(dispatchTrackerIface, dispatchTracker);
         else
             services.AddSingleton(dispatchTrackerIface, dispatchTracker);

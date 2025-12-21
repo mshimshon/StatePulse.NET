@@ -14,37 +14,39 @@ using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Store;
 namespace StatePulse.NET.Tests;
 public abstract class TestBase : IDisposable
 {
-    protected readonly IServiceProvider ServiceProvider;
-
+    protected IServiceProvider ServiceProvider { get; set; }
+    protected IServiceCollection ServiceCollection { get; set; }
     protected TestBase()
     {
-        IServiceCollection services = new ServiceCollection();
+        ServiceCollection = new ServiceCollection();
         // TOOD: Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
         // service exceptions du to thread safe on bulk testing.
-        services.AddStatePulseServices(o => { });
-        services.AddStatePulseAction<MainMenuLoaderStartAction>();
-        services.AddStatePulseAction<MainMenuLoaderStopAction>();
-        services.AddStatePulseAction<MainMenuLoadNavigationItemsAction>();
-        services.AddStatePulseAction<MainMenuLoadNavigationItemsResultAction>();
-        services.AddStatePulseAction<MainMenuOpenAction>();
-        services.AddStatePulseAction<ProfileCardDefineAction>();
-        services.AddStatePulseAction<ProfileCardDefineResultAction>();
-        services.AddStatePulseAction<ProfileCardLoaderStartAction>();
-        services.AddStatePulseAction<ProfileCardLoaderStopAction>();
-        services.AddStatePulseEffect<ProfileCardDefineEffect>();
-        services.AddStatePulseEffect<MainMenuLoadNavigationItemsEffect>();
-        services.AddStatePulseEffect<MainMenuOpenEffect>();
-        services.AddStatePulseEffectValidator<MainMenuOpenEffectValidation>();
-        services.AddStatePulseEffectValidator<ProfileCardDefineActionValidator>();
-        services.AddStatePulseReducer<MainMenuLoaderStartReducer>();
-        services.AddStatePulseReducer<MainMenuLoaderStopReducer>();
-        services.AddStatePulseReducer<MainMenuLoadNavigationItemsResultReducer>();
-        services.AddStatePulseReducer<MainMenuOpenReducer>();
-        services.AddStatePulseReducer<ProfileCardDefineResultReducer>();
-        services.AddStatePulseStateFeature<ProfileCardState>();
-        services.AddStatePulseStateFeature<MainMenuState>();
+        ServiceCollection.AddStatePulseServices(o => {
+            
+        });
+        ServiceCollection.AddStatePulseAction<MainMenuLoaderStartAction>();
+        ServiceCollection.AddStatePulseAction<MainMenuLoaderStopAction>();
+        ServiceCollection.AddStatePulseAction<MainMenuLoadNavigationItemsAction>();
+        ServiceCollection.AddStatePulseAction<MainMenuLoadNavigationItemsResultAction>();
+        ServiceCollection.AddStatePulseAction<MainMenuOpenAction>();
+        ServiceCollection.AddStatePulseAction<ProfileCardDefineAction>();
+        ServiceCollection.AddStatePulseAction<ProfileCardDefineResultAction>();
+        ServiceCollection.AddStatePulseAction<ProfileCardLoaderStartAction>();
+        ServiceCollection.AddStatePulseAction<ProfileCardLoaderStopAction>();
+        ServiceCollection.AddStatePulseEffect<ProfileCardDefineEffect>();
+        ServiceCollection.AddStatePulseEffect<MainMenuLoadNavigationItemsEffect>();
+        ServiceCollection.AddStatePulseEffect<MainMenuOpenEffect>();
+        ServiceCollection.AddStatePulseEffectValidator<MainMenuOpenEffectValidation>();
+        ServiceCollection.AddStatePulseEffectValidator<ProfileCardDefineActionValidator>();
+        ServiceCollection.AddStatePulseReducer<MainMenuLoaderStartReducer>();
+        ServiceCollection.AddStatePulseReducer<MainMenuLoaderStopReducer>();
+        ServiceCollection.AddStatePulseReducer<MainMenuLoadNavigationItemsResultReducer>();
+        ServiceCollection.AddStatePulseReducer<MainMenuOpenReducer>();
+        ServiceCollection.AddStatePulseReducer<ProfileCardDefineResultReducer>();
+        ServiceCollection.AddStatePulseStateFeature<ProfileCardState>();
+        ServiceCollection.AddStatePulseStateFeature<MainMenuState>();
         // Register your services
-        ServiceProvider = services.BuildServiceProvider();
+        ServiceProvider = ServiceCollection.BuildServiceProvider();
     }
     public void Dispose()
     {
