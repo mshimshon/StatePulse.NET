@@ -7,11 +7,12 @@ public class ConfigureOptions
     /// Scoped on WASM = Singleton, Singleton on Blazor Server = Chaos Data Leakage
     /// </summary>
     public Lifetime ServiceLifetime { get; set; } = Lifetime.Scoped;
-    public MiddlewareEffectBehavior MiddlewareEffectBehavior { get; internal set; } = MiddlewareEffectBehavior.PerGroupEffects;
-    public MiddlewareTaskBehavior MiddlewareTaskBehavior { get; internal set; } = MiddlewareTaskBehavior.DoNotAwait;
-    public DispatchEffectBehavior DispatchEffectBehavior { get; internal set; } = DispatchEffectBehavior.Parallel;
-    public DispatchEffectExecutionBehavior DispatchEffectExecutionBehavior { get; internal set; } = DispatchEffectExecutionBehavior.YieldAndFire;
-    public DispatchOrdering DispatchOrderBehavior { get; internal set; } = DispatchOrdering.ReducersFirst;
+    public MiddlewareEffectBehavior MiddlewareEffectBehavior { get; set; } = MiddlewareEffectBehavior.PerGroupEffects;
+    public MiddlewareTaskBehavior MiddlewareTaskBehavior { get; set; } = MiddlewareTaskBehavior.DoNotAwait;
+    public DispatchEffectBehavior DispatchEffectBehavior { get; set; } = DispatchEffectBehavior.Parallel;
+    public DispatchEffectExecutionBehavior DispatchEffectExecutionBehavior { get; set; } = DispatchEffectExecutionBehavior.YieldAndFire;
+    public DispatchOrdering DispatchOrderBehavior { get; set; } = DispatchOrdering.ReducersFirst;
+    public PulseTrackingModel PulseTrackingPerformance { get; set; } = PulseTrackingModel.ThreadSafe;
     public Type[] ScanAssemblies { get; set; } = new Type[] { };
 
     public void ValidateConfiguration()

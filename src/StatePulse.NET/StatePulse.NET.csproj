@@ -31,7 +31,7 @@
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
-      <None Include="..\..\doc\statepulse-doc\docs\0.Versions.md">
+      <None Include="..\..\doc\docs\0.Versions.md">
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>

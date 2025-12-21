@@ -182,10 +182,6 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         {
             if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
                 break;
-            effectMiddlewareTasks = RunMiddlewareEffect(effectMiddlewares, p => p.BeforeEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
-
-            if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-                await effectMiddlewareTasks;
 
             bool validationPassed = await RunEffectValidators(effectService!.GetType(), effectMiddlewares);
             if (!validationPassed)
@@ -204,23 +200,6 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 else
                     await effectTask;
             }
-
-            if (ServiceRegisterExt.ConfigureOptions.MiddlewareEffectBehavior == MiddlewareEffectBehavior.PerIndividualEffect)
-            {
-                if  (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget) 
-                    _ = effectMiddlewareTasks;
-                else 
-                    await effectMiddlewareTasks;
-            }
-            
-
-            var effectMiddlewareAfterTasks = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerIndividualEffect);
-            if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-                if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
-                    _ = effectMiddlewareAfterTasks;
-                else
-                    await effectMiddlewareAfterTasks;
-
         }
         if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
         {

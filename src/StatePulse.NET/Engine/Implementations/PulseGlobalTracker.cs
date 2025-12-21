@@ -14,6 +14,9 @@ internal class PulseGlobalTracker : IPulseGlobalTracker
                 return _registry.ToList();
         }
     }
+
+    public IReadOnlyCollection<IStatePulse> Registered => _registry;
+
     private readonly Timer _timer;
 
     public event EventHandler? onAfterCleanUp;

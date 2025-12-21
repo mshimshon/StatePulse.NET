@@ -54,7 +54,6 @@ internal abstract class PulseLazyStateBase : IStatePulse
             return;
         }
     }
-    // Placeholder method for event handler
     private void OnStateChanged(object? sender, EventArgs Args)
     {
         if (!_instance.TryGetTarget(out var target))

@@ -6,12 +6,12 @@ public interface IStatePulseRegistry
     IReadOnlyDictionary<Type, Type> KnownEffects { get; }
     IReadOnlyDictionary<Type, Type> KnownReducers { get; }
     IReadOnlyDictionary<Type, Func<object, object?[], object?>> KnownReducersReduceMethod { get; }
-    public IReadOnlyList<Type> KnownActions { get; }
-    public IReadOnlyDictionary<Type, Type> KnownActionValidators { get; }
-    public IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsStateGetter { get; }
-    public IReadOnlyDictionary<Type, Action<object, object?>> KnownStateAccessorsStateSetter { get; }
-    public IReadOnlyDictionary<Type, Func<object, object?>> KnownReducersTaskResult { get; }
-    public IReadOnlyDictionary<Type, Type> KnownStateToAccessors { get; }
+    IReadOnlyList<Type> KnownActions { get; }
+    IReadOnlyDictionary<Type, Type> KnownActionValidators { get; }
+    IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsStateGetter { get; }
+    IReadOnlyDictionary<Type, Action<object, object?>> KnownStateAccessorsStateSetter { get; }
+    IReadOnlyDictionary<Type, Func<object, object?>> KnownReducersTaskResult { get; }
+    IReadOnlyDictionary<Type, Type> KnownStateToAccessors { get; }
 
     void RegisterState(Type stateType);
     void RegisterEffect(Type effectType, Type interfaceType);

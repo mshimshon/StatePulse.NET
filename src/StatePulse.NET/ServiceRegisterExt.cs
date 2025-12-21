@@ -4,29 +4,30 @@ using StatePulse.Net.Engine;
 using StatePulse.Net.Engine.Implementations;
 
 namespace StatePulse.Net;
+
 public static class ServiceRegisterExt
 {
     private static bool _scanned;
-    public static ConfigureOptions ConfigureOptions { get; set; } =  new ConfigureOptions();
+    public static ConfigureOptions ConfigureOptions { get; set; } = new ConfigureOptions();
     private static StatePulseRegistry Registry = new StatePulseRegistry();
 
 
     public static IServiceCollection AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
     {
-        // TODO: Create IDispatchFactory to bind IDispatcher and IDispatchHAndler
         services.AddTransient<IDispatcher, Dispatcher>();
         services.AddTransient<IDispatchFactory, DispatchFactory>();
         configure(ConfigureOptions);
         ConfigureOptions.ValidateConfiguration();
-        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
-            services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
-        else
-            services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
+        services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
 
-        services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
-        services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
+        bool isSingleThreadModel = ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.SingleThreadFast || ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.BlazorWebAssemblyFast;
+        if (isSingleThreadModel)
+          services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
+        else
+          services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
+
         services.AddSingleton<IStatePulseRegistry>(Registry);
-        if (ConfigureOptions.ScanAssemblies.Count() > 0)
+        if (ConfigureOptions.ScanAssemblies.Any())
             services.ScanStatePulseAssemblies(ConfigureOptions.ScanAssemblies);
 
         return services;
@@ -74,17 +75,36 @@ public static class ServiceRegisterExt
     public static IServiceCollection AddStatePulseStateFeature<TImplementation>(this IServiceCollection services)
         where TImplementation : IStateFeature
     => services.AddStatePulseStateFeature(typeof(TImplementation));
-    private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
+    //private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
+    //{
+    //    var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
+    //    var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(implementation);
 
+    //    if (services.IsStateAccessorRegistered(accessorImplementationType)) return services;
+    //    if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
+    //        services.AddScoped(accessorType, accessorImplementationType);
+    //    else
+    //        services.AddSingleton(accessorType, accessorImplementationType);
+
+    //    Registry.RegisterState(implementation);
+    //    return services;
+    //}
+    private static IServiceCollection AddStatePulseStateFeature(this IServiceCollection services, Type implementation)
     {
         var accessorType = typeof(IStateAccessor<>).MakeGenericType(implementation);
         var accessorImplementationType = typeof(StateAccessor<>).MakeGenericType(implementation);
 
-        if (services.IsStateAccessorRegistered(accessorImplementationType)) return services;
-        if (ConfigureOptions.ServiceLifetime == Lifetime.Scoped)
-            services.AddScoped(accessorType, accessorImplementationType);
-        else
+        if (services.IsStateAccessorRegistered(accessorImplementationType))
+            return services;
+
+        // Check if the state implements IStateFeatureSingleton
+        bool isSingletonFeature = typeof(IStateFeatureSingleton).IsAssignableFrom(implementation);
+
+        if (isSingletonFeature)
             services.AddSingleton(accessorType, accessorImplementationType);
+        else
+            services.AddScoped(accessorType, accessorImplementationType);
+
 
         Registry.RegisterState(implementation);
         return services;

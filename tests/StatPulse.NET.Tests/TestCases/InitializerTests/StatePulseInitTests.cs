@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsWPF;
+using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net;
 using StatePulse.Net.Engine;
+using StatePulse.NET.Tests.TestCases.Pulsars.Counter.Actions;
+using StatePulse.NET.Tests.TestCases.Pulsars.Counter.States;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
@@ -143,6 +146,95 @@ public class StatePulseInitTests : TestBase
             lastEntry = item;
         }
         Assert.True(inConsistenceCount > 0);
+
+    }
+
+
+    [Fact]
+    public async Task DispatchSingletonState()
+    {
+        using var circuitA = ServiceProvider.CreateScope();
+        var circuitAAccessor = circuitA.ServiceProvider.GetRequiredService<IStateAccessor<CounterState>>();
+        var circuitADispatcher = circuitA.ServiceProvider.GetRequiredService<IDispatcher>();
+
+        using var circuitB = ServiceProvider.CreateScope();
+        var circuitBAccessor = circuitB.ServiceProvider.GetRequiredService<IStateAccessor<CounterState>>();
+        var circuitBDispatcher = circuitB.ServiceProvider.GetRequiredService<IDispatcher>();
+
+
+        // Dispatch action that changes state
+        int changesOnA = 0;
+        circuitAAccessor.OnStateChanged += (s, state) =>
+        {
+            changesOnA++;
+        };
+
+        int changesOnB = 0;
+        circuitBAccessor.OnStateChanged += (s, state) =>
+        {
+            changesOnB++;
+        };
+        List<Task> tasks = new();
+        for (int i = 0; i < 2; i++)
+        {
+            var tsk = circuitADispatcher.Prepare<UpdateCounterAction>().Await().DispatchAsync();
+            tasks.Add(tsk);
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            var tsk = circuitBDispatcher.Prepare<UpdateCounterAction>().Await().DispatchAsync();
+            tasks.Add(tsk);
+        }
+        await Task.WhenAll(tasks);
+        Assert.True(changesOnB == changesOnA);
+
+    }
+
+    [Fact]
+    public async Task DispatchSingletonState_Failure()
+    {
+        using var circuitA = ServiceProvider.CreateScope();
+        var circuitAAccessor = circuitA.ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
+        var circuitADispatcher = circuitA.ServiceProvider.GetRequiredService<IDispatcher>();
+
+        using var circuitB = ServiceProvider.CreateScope();
+        var circuitBAccessor = circuitB.ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
+        var circuitBDispatcher = circuitB.ServiceProvider.GetRequiredService<IDispatcher>();
+
+
+        // Dispatch action that changes state
+        int changesOnA = 0;
+        circuitAAccessor.OnStateChanged += (s, state) =>
+        {
+            changesOnA++;
+            Assert.Equal("Profile 1", state.ProfileName);
+        };
+
+        int changesOnB = 0;
+        circuitBAccessor.OnStateChanged += (s, state) =>
+        {
+            Assert.Equal("Profile 2", state.ProfileName);
+            changesOnB++;
+        };
+        List<Task> tasks = new();
+        for (int i = 0; i < 2; i++)
+        {
+            var tsk = circuitADispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 1")
+                .Await()
+                .DispatchAsync();
+            tasks.Add(tsk);
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            var tsk = circuitBDispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, "Profile 2")
+                .Await()
+                .DispatchAsync();
+            tasks.Add(tsk);
+        }
+        await Task.WhenAll(tasks);
+        Assert.True(changesOnB != changesOnA);
 
     }
 }

@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net;
+using StatePulse.NET.Tests.TestCases.Pulsars.Counter.Actions;
+using StatePulse.NET.Tests.TestCases.Pulsars.Counter.Reducers;
+using StatePulse.NET.Tests.TestCases.Pulsars.Counter.States;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects.Validators;
@@ -33,18 +36,24 @@ public abstract class TestBase : IDisposable
         ServiceCollection.AddStatePulseAction<ProfileCardDefineResultAction>();
         ServiceCollection.AddStatePulseAction<ProfileCardLoaderStartAction>();
         ServiceCollection.AddStatePulseAction<ProfileCardLoaderStopAction>();
+        ServiceCollection.AddStatePulseAction<UpdateCounterAction>();
         ServiceCollection.AddStatePulseEffect<ProfileCardDefineEffect>();
         ServiceCollection.AddStatePulseEffect<MainMenuLoadNavigationItemsEffect>();
         ServiceCollection.AddStatePulseEffect<MainMenuOpenEffect>();
+
         ServiceCollection.AddStatePulseEffectValidator<MainMenuOpenEffectValidation>();
         ServiceCollection.AddStatePulseEffectValidator<ProfileCardDefineActionValidator>();
+
         ServiceCollection.AddStatePulseReducer<MainMenuLoaderStartReducer>();
         ServiceCollection.AddStatePulseReducer<MainMenuLoaderStopReducer>();
         ServiceCollection.AddStatePulseReducer<MainMenuLoadNavigationItemsResultReducer>();
         ServiceCollection.AddStatePulseReducer<MainMenuOpenReducer>();
         ServiceCollection.AddStatePulseReducer<ProfileCardDefineResultReducer>();
+        ServiceCollection.AddStatePulseReducer<UpdateCounterReducer>();
         ServiceCollection.AddStatePulseStateFeature<ProfileCardState>();
         ServiceCollection.AddStatePulseStateFeature<MainMenuState>();
+
+        ServiceCollection.AddStatePulseStateFeature<CounterState>();
         // Register your services
         ServiceProvider = ServiceCollection.BuildServiceProvider();
     }

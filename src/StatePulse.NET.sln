@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11222.15 d18.0
+VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
@@ -13,11 +13,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.NET.Tests", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.NET", "StatePulse.NET\StatePulse.NET.csproj", "{001E330A-2F3E-D401-1119-2C5AEC9243AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Tests.App", "..\tests\StatePulse.Net.Tests.App\StatePulse.Net.Tests.App.csproj", "{2C1CC5ED-698A-41D9-9436-629115326499}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Analyzers", "StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj", "{62E34523-4C01-492E-9957-A14F70799C71}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Abstractions", "StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj", "{EEC112B4-18B6-414F-BC15-F525B2C90AEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.BlazorServerTest", "StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest.csproj", "{91D39E25-8E38-45A0-A0BD-E59AC72EA507}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.BlazorServerTest.Client", "StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest.Client\StatePulse.Net.BlazorServerTest.Client.csproj", "{DCB8495F-3B22-4797-A027-C61850527E2B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,12 +35,6 @@ Global
 		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{001E330A-2F3E-D401-1119-2C5AEC9243AA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C1CC5ED-698A-41D9-9436-629115326499}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{62E34523-4C01-492E-9957-A14F70799C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{62E34523-4C01-492E-9957-A14F70799C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62E34523-4C01-492E-9957-A14F70799C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,6 +43,14 @@ Global
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCB8495F-3B22-4797-A027-C61850527E2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCB8495F-3B22-4797-A027-C61850527E2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCB8495F-3B22-4797-A027-C61850527E2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCB8495F-3B22-4797-A027-C61850527E2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
