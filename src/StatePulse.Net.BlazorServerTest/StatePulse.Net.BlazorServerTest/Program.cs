@@ -1,6 +1,5 @@
-using StatePulse.Net.BlazorServerTest.Client.Pages;
-using StatePulse.Net.BlazorServerTest.Components;
 using StatePulse.Net;
+using StatePulse.Net.BlazorServerTest.Components;
 using StatePulse.Net.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,12 +8,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddStatePulseServices(c => {
+builder.Services.AddStatePulseServices(c =>
+{
     c.PulseTrackingPerformance = PulseTrackingModel.BlazorServerSafe;
     c.DispatchEffectExecutionBehavior = DispatchEffectExecutionBehavior.YieldAndFire;
     c.DispatchEffectBehavior = DispatchEffectBehavior.Sequential;
-    
-    c.ScanAssemblies = [typeof(Program), typeof(StatePulse.Net.BlazorServerTest.Client._Imports)];
+
+    c.ScanAssemblies = [typeof(Program).Assembly, typeof(StatePulse.Net.BlazorServerTest.Client._Imports).Assembly];
 });
 var app = builder.Build();
 

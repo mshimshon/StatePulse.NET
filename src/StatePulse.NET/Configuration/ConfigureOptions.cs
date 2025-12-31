@@ -1,6 +1,8 @@
 ﻿using StatePulse.Net.Engine.Exceptions;
+using System.Reflection;
 
 namespace StatePulse.Net.Configuration;
+
 public class ConfigureOptions
 {
     /// <summary>
@@ -12,7 +14,7 @@ public class ConfigureOptions
     public DispatchEffectExecutionBehavior DispatchEffectExecutionBehavior { get; set; } = DispatchEffectExecutionBehavior.YieldAndFire;
     public DispatchOrdering DispatchOrderBehavior { get; set; } = DispatchOrdering.ReducersFirst;
     public PulseTrackingModel PulseTrackingPerformance { get; set; } = PulseTrackingModel.ThreadSafe;
-    public Type[] ScanAssemblies { get; set; } = new Type[] { };
+    public Assembly[] ScanAssemblies { get; set; } = new Assembly[] { };
 
     public void ValidateConfiguration()
     {
