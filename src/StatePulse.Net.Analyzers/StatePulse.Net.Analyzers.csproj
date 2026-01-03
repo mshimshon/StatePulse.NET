@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>true</IsPackable>
+	  <LangVersion>12.0</LangVersion>
+	  <IsPackable>true</IsPackable>
 	  <IsRoslynAnalyzer>true</IsRoslynAnalyzer>
     <!-- Avoid ID conflicts with the package project. -->
     <PackageId>StatePulse.Net.Analyzers</PackageId>
