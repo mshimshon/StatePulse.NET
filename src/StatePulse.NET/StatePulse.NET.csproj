@@ -47,11 +47,6 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
 	</ItemGroup>
-	
-	<!-- Reference Project Directly while not packing -->
-	<ItemGroup Condition="'$(IsPackable)' != 'true'">
-		<ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
-	</ItemGroup>
 
 	<!-- Reference Package at Pack Time -->
 	<!--<ItemGroup Condition="'$(IsPackable)' == 'true'">
@@ -60,10 +55,6 @@
 	
 	<ItemGroup>
         <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
-        <ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
-            <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
-        </ProjectReference>
-        <None Include="..\StatePulse.Net.Analyzers\bin\$(Configuration)\netstandard2.0\StatePulse.Net.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 
     <Target Name="CopyNuPkg" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">

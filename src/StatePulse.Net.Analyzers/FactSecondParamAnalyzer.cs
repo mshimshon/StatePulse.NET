@@ -31,18 +31,25 @@ namespace StatePulse.Net.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            // Analyze generated code (Blazor .razor -> generated C#) and report diagnostics there
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
             context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node is not InvocationExpressionSyntax invocation)
+            var invocation = context.Node as InvocationExpressionSyntax;
+            if (invocation == null)
+            {
                 return;
+            }
 
             var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken);
-            if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
+            var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
+            if (methodSymbol == null)
+            {
                 return;
+            }
 
             // Ensure it's a method named StateOf
             if (methodSymbol.Name != "StateOf")
@@ -55,6 +62,9 @@ namespace StatePulse.Net.Analyzers
                 return;
 
             // Check argument count
+            if (invocation.ArgumentList == null)
+                return;
+
             var args = invocation.ArgumentList.Arguments;
             if (args.Count < 2)
                 return;

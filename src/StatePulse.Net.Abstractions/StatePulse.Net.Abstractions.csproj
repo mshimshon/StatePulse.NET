@@ -51,14 +51,13 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
 	</ItemGroup>
 	
-	
+	<!-- Analyzer reference for build -->
+
+	<!-- Analyzer packed into NuGet -->
 	<ItemGroup>
-		<ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
-			<ReferenceOutputAssembly>False</ReferenceOutputAssembly>
-		</ProjectReference>
 		<None Include="..\StatePulse.Net.Analyzers\bin\$(Configuration)\netstandard2.0\StatePulse.Net.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
-
+	
 	<Target Name="CopyNuPkg" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
 		<MakeDir Directories="..\..\..\..\nupkgs" />
 		<ItemGroup>
