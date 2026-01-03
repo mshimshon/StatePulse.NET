@@ -7,6 +7,7 @@
 
 # StatePulse.NET
 ### [Official Documentation](https://statepulse.net/)
+
 StatePulse.NET is a precision-tuned state and action management system that balances high-performance fire-and-forget operations with optional, internally controlled execution order when explicitly required. 
 It enables anti-duplication chaining for critical flows, preventing race conditions and ensuring consistent outcomes even under rapid user input or concurrent triggers. 
 Its internal tracking infrastructure provides near-zero overhead cancellation and dispatch control, drastically reducing inconsistency. 
@@ -27,6 +28,21 @@ At the same time, it preserves the flexibility of traditional untracked state ma
 - **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.  
 - **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.  
 - **Transient `IStatePulse` Service:** Each component gets its own `IStatePulse` instance, isolating event subscriptions and making state updates scoped and efficient.
+
+
+## Benchmark
+| Method                                         | Mean       | Error     | StdDev    | Median     |
+|----------------------------------------------- |-----------:|----------:|----------:|-----------:|
+| StatePulse_Dispatch                            |   2.458 μs | 0.0344 μs | 0.0322 μs |   2.455 μs |
+| StatePulse_BusrtDispatch                       | 321.243 μs | 4.6181 μs | 4.3198 μs | 322.030 μs |
+| StatePulse_BusrtSafeDispatch                   | 350.282 μs | 4.4814 μs | 4.1919 μs | 351.182 μs |
+| StatePulse_FireYieldDispatch                   |   3.193 μs | 0.0631 μs | 0.0675 μs |   3.193 μs |
+| StatePulse_FireYield_SequentialEffectsDispatch |   3.326 μs | 0.0661 μs | 0.0969 μs |   3.303 μs |
+| StatePulse_AwaitedDispatch                     |   4.420 μs | 0.6850 μs | 2.0196 μs |   3.165 μs |
+
+StatePulse is very fast considering it's features but it should be avoided in tight loops which is not its intended use anyway.
+I will be working to improve the performances over the long run, there are many areas which can be improved but at the moment,
+i will be focusing on stable system, settings and features.
 
 
 ## 📦 Installation & Setup
