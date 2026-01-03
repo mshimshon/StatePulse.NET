@@ -10,7 +10,7 @@ public static class Program
         BenchmarkRunner.Run<Tests>();
 
         //var t = new Tests();
-        //t.StatePulse_Dispatch();
+        //t.StatePulse_FireYield_SequentialEffectsDispatch();
         //t.Flux_Dispatch();
     }
 }

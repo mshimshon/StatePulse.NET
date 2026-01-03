@@ -43,57 +43,40 @@ public class Tests
     [Benchmark]
     public void StatePulse_Dispatch()
     {
-        int counter = PulseCounter.Counter;
-        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync();
-        // lock until state changes
-        do { } while (counter == PulseCounter.Counter);
+        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().Await().DispatchAsync();
     }
 
     [Benchmark]
-    public void StatePulse_SafeDispatch()
+    public async Task StatePulse_BusrtDispatch()
     {
-        int counter = PulseCounter.Counter;
-        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync(true);
-        // lock until state changes
-        do { } while (counter == PulseCounter.Counter);
+        for (int i = 0; i < 100; i++)
+            await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync();
     }
 
     [Benchmark]
-    public void StatePulse_FireYieldDispatch()
+    public async Task StatePulse_BusrtSafeDispatch()
     {
-        int counter = PulseCounter.Counter;
-        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecFireAndForget().DispatchAsync();
-        // lock until state changes
-        do { } while (counter == PulseCounter.Counter);
+        for (int i = 0; i < 100; i++)
+            await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync(true);
+    }
+
+
+    [Benchmark]
+    public async Task StatePulse_FireYieldDispatch()
+    {
+        await _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecFireAndForget().DispatchAsync();
     }
 
     [Benchmark]
-    public void StatePulse_FireYield_SequentialEffectsDispatch()
+    public async Task StatePulse_FireYield_SequentialEffectsDispatch()
     {
-        int counter = PulseCounter.Counter;
-        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecFireAndForget().SequentialEffects().DispatchAsync();
-        // lock until state changes
-        do { } while (counter == PulseCounter.Counter);
+        await _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecYieldAndFire().SequentialEffects().DispatchAsync();
     }
 
     [Benchmark]
     public async Task StatePulse_AwaitedDispatch()
     {
-        int counter = PulseCounter.Counter;
-        await _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecFireAndForget().Await().DispatchAsync();
-        // lock until state changes
-        do { } while (counter == PulseCounter.Counter);
+        await _pulseDispatcher.Prepare<IncreaseCounterAction>().ExecYieldAndFire().Await().DispatchAsync();
     }
-
-    //[Benchmark]
-    //public void Flux_Dispatch()
-    //{
-    //    int counter = FluxCounter.Counter;
-    //    _fluxDispatcher.Dispatch(new IncreaseCounterAction());
-    //    // lock until state changes
-    //    do
-    //    {
-    //    } while (counter == FluxCounter.Counter);
-    //}
 
 }
