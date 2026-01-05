@@ -19,7 +19,6 @@ public static class ServiceRegisterExt
         services.AddTransient<IDispatchFactory, DispatchFactory>();
         configure(ConfigureOptions);
         ConfigureOptions.ValidateConfiguration();
-        services.AddSingleton<IPulseGlobalTracker, PulseGlobalTracker>();
 
         bool isSingleThreadModel = ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.SingleThreadFast || ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.BlazorWebAssemblyFast;
         if (isSingleThreadModel)
@@ -27,6 +26,7 @@ public static class ServiceRegisterExt
         else
             services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
 
+        services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         services.AddSingleton<IStatePulseRegistry>(Registry);
         services.ScanStatePulseAssemblies(ConfigureOptions.ScanAssemblies);
 
