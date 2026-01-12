@@ -1,5 +1,4 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsWPF;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net;
 using StatePulse.Net.Engine;
 using StatePulse.NET.Tests.TestCases.Pulsars.Counter.Actions;
@@ -8,6 +7,7 @@ using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Store;
+using System.Diagnostics;
 
 namespace StatePulse.NET.Tests.TestCases.InitializerTests;
 
@@ -69,41 +69,60 @@ public class StatePulseInitTests : TestBase
     [Fact]
     public async Task DispatchingBurstShouldTriggerSafetyCancel()
     {
-        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var tracker = ServiceProvider.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
-        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
+        var scopedServices = ServiceProvider.CreateScope().ServiceProvider;
+        var dispatcher = scopedServices.GetRequiredService<IDispatcher>();
+        var stateAccessor = scopedServices.GetRequiredService<IStateAccessor<ProfileCardState>>();
+        var tracker = scopedServices.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
+        var tracker2 = scopedServices.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
+        int cancelled = 0;
+        tracker.OnCancel += (o, action) =>
+        {
+
+            cancelled++;
+        };
         // Dispatch action that changes state
         int changes = 0;
         stateAccessor.OnStateChanged += (s, state) =>
         {
             changes++;
         };
-        Guid a = Guid.Empty, b = Guid.Empty;
-        bool cont = false, aDone = false, bDone = false;
-        tracker.OnCancel += (o, action) =>
+        List<Guid> dispatches = new();
+        Random random = new Random();
+        int[] timing = [
+            50, // Entry
+            25, // Cancels 0
+            75, // 
+            50,
+            25,
+            50,
+            1000,
+            25,
+            50,
+            25
+        ];
+        string winingValue = $"Profile";
+        List<string> possibleRaceConditions = new();
+        for (int i = 0; i < 10; i++)
         {
-            if (action.Id == a) aDone = true;
-            if (action.Id == b) bDone = true;
-            if (aDone && bDone) cont = true;
-        };
-        List<string> result = new();
-        for (int i = 0; i < 100; i++)
-        {
-            a = await dispatcher.Prepare<ProfileCardDefineAction>()
-                .With(p => p.TestData, "Profile 1")
+            winingValue = $"Profile {random.Next()}";
+            var id = await dispatcher.Prepare<ProfileCardDefineAction>()
+                .With(p => p.TestData, winingValue)
+                .With(p => p.Delay, timing[i])
                 .DispatchAsync(true);
-
-            b = await dispatcher.Prepare<ProfileCardDefineAction>()
-                .With(p => p.TestData, "Profile 2")
-                .DispatchAsync(true);
-
-            while (!cont) { await Task.Delay(100); }
-            cont = false;
-            result.Add(stateAccessor.State.ProfileName!);
+            dispatches.Add(id);
+            possibleRaceConditions.Add(winingValue);
         }
-        foreach (var item in result)
-            Assert.Equal("Profile 2", item);
-        Assert.True(result.Count > 0);
+        await Task.Delay(timing.Sum());
+
+
+        do
+        {
+
+
+        } while (changes <= 0);
+        bool isPassing = stateAccessor.State.ProfileName == possibleRaceConditions.Last();
+        if (!isPassing) Debugger.Break();
+        Assert.True(isPassing);
     }
 
     [Fact]

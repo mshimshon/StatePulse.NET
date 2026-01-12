@@ -1,4 +1,5 @@
 ﻿namespace StatePulse.Net;
+
 public interface IDispatcherPrepper<TAction> where TAction : IAction
 {
     TAction ActionInstance { get; }
@@ -6,8 +7,6 @@ public interface IDispatcherPrepper<TAction> where TAction : IAction
     Task<Guid> DispatchAsync(bool asSafe = false);
     IDispatcherPrepper<TAction> EffectsFirst();
     IDispatcherPrepper<TAction> ReducersFirst();
-    IDispatcherPrepper<TAction> ExecFireAndForget();
-    IDispatcherPrepper<TAction> ExecYieldAndFire();
     IDispatcherPrepper<TAction> SequentialEffects();
     IDispatcherPrepper<TAction> ParallelEffects();
 

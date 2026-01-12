@@ -1,9 +1,9 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net.Configuration;
-using System.Collections.Concurrent;
 using System.Reflection;
 namespace StatePulse.Net.Engine.Implementations;
+
 internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAction>
     where TAction : IAction
     where TActionChain : IAction
@@ -13,7 +13,7 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
     private readonly IStatePulseRegistry _statePulseRegistry;
     private readonly DispatchTrackingIdentity? _chainKey;
     private readonly IDispatchTracker<TActionChain> _tracker;
-
+    private readonly long _currentVersion;
     public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey)
     {
         _action = action!;
@@ -22,13 +22,15 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         _chainKey = chainKey;
         var trackerTypeAction = typeof(IDispatchTracker<>).MakeGenericType(typeof(TActionChain));
         _tracker = (IDispatchTracker<TActionChain>)_serviceProvider.GetRequiredService(trackerTypeAction);
+        _currentVersion = ServiceRegisterExt.ConfigureOptions.GetNextVersion();
+
     }
 
     public TAction ActionInstance => _action;
 
     public async Task DispatchFastAsync()
     {
-        if (_chainKey != default && _tracker.IsCancelled(_chainKey.Id))
+        if (_chainKey != default && _chainKey.Tracker.IsCancelled(_chainKey.Id, _chainKey.Version))
             return;
         if (_chainKey == default)
             if (_forceSyncronous)
@@ -37,6 +39,8 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 _ = ProcessDispatch(false, Guid.Empty);
         else
         {
+            if (_chainKey.Tracker.IsCancelled(_chainKey.Id, _chainKey.Version))
+                return;
             if (_forceSyncronous)
                 await ProcessDispatch(false, Guid.Empty);
             else
@@ -47,8 +51,6 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
     public async Task<Guid> DispatchSafeAsync()
     {
-        if (_chainKey != default && _tracker.IsCancelled(_chainKey.Id))
-            return _chainKey.Id;
         if (_chainKey == default)
         {
             Guid nextKey = Guid.NewGuid();
@@ -59,24 +61,22 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             return nextKey;
         }
         else
+        {
             // ignore requested dispatch if cancelled
-            if (!_tracker.IsCancelled(_chainKey.Id)) await ProcessDispatch(false, Guid.Empty);
+            if (!_tracker.IsCancelled(_chainKey.Id, _chainKey.Version))
+                if (_forceSyncronous)
+                    await ProcessDispatch(false, Guid.Empty);
+                else
+                    _ = ProcessDispatch(false, Guid.Empty);
+        }
+
         return _chainKey?.Id ?? Guid.Empty;
     }
 
     private static MethodInfo? _cachedEffectMethod;
     private static MethodInfo? _cachedActionValidatorMethod;
-    private static readonly ConcurrentDictionary<Type, Type> _cachedEffectInterfaceTypes = new();
     protected async Task ProcessDispatch(bool entryPoint, Guid nextId)
     {
-        var disaptchMiddlewares = _serviceProvider.GetServices<IDispatcherMiddleware>();
-        var dispatchMiddlewareTasks = new List<Task>();
-        foreach (var item in disaptchMiddlewares)
-        {
-            dispatchMiddlewareTasks.Add(item.BeforeDispatch(_action));
-        }
-        
-        await Task.WhenAll(dispatchMiddlewareTasks);
         // we are tracking next chain key only when there is an entry point to avoid tracker during fast dispatch.
         // by default it will be null otherwise chain should be passed down the next calls.
         var nextChain = _chainKey;
@@ -85,11 +85,26 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             nextChain = new DispatchTrackingIdentity()
             {
                 Id = nextId,
-                EntryType = typeof(TAction)
+                EntryType = typeof(TAction),
+                Version = _currentVersion,
+                Tracker = _tracker
             };
+            bool preCancel = _tracker.CreateExecutingAction(nextChain.Id, this, nextChain.Version);
+            if (!preCancel)
+                return;
             _tracker.CreateEntryPoint(nextChain.Id, this);
         }
-#pragma warning disable S2737 // "catch" clauses should do more than rethrow
+
+
+        var disaptchMiddlewares = _serviceProvider.GetServices<IDispatcherMiddleware>();
+        var dispatchMiddlewareTasks = new List<Task>();
+        foreach (var item in disaptchMiddlewares)
+        {
+            dispatchMiddlewareTasks.Add(item.BeforeDispatch(_action));
+        }
+        await Task.WhenAll(dispatchMiddlewareTasks);
+
+
         try
         {
             var dispatcherService = _serviceProvider.GetRequiredService<IDispatchFactory>();
@@ -98,28 +113,24 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             if (_dispatchOrdering == DispatchOrdering.ReducersFirst)
                 await RunReducer(nextChain);
 
-            if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
-            {
-                _ = RunEffects(nextChain, dispatcherService);
-            }
-            else
-            {
-                await RunEffects(nextChain, dispatcherService);
-            }
+            await RunEffects(nextChain, dispatcherService);
 
             if (_dispatchOrdering == DispatchOrdering.EffectsFirst)
                 await RunReducer(nextChain);
 
         }
-        catch
+        catch (Exception ex)
         {
-            throw;
+            foreach (var item in disaptchMiddlewares)
+                _ = item.OnDispatchFailure(ex, _action);
+
+
+
+            if (_forceSyncronous)
+                throw;
         }
         finally
         {
-            // if entry point just untrack current action
-            if (entryPoint && nextChain != default)
-                _tracker.DeleteEntryPoint(nextChain.Id);
 
             dispatchMiddlewareTasks = new List<Task>();
             foreach (var item in disaptchMiddlewares)
@@ -128,13 +139,11 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             }
             await Task.WhenAll(dispatchMiddlewareTasks);
         }
-#pragma warning restore S2737 // "catch" clauses should do more than rethrow
 
     }
     public async Task<Guid> DispatchAsync(bool asSafe = false)
     {
 
-        ValidateConfiguration();
         if ((_action is ISafeAction) || asSafe)
             return await DispatchSafeAsync();
         await DispatchFastAsync();
@@ -180,8 +189,8 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
         foreach (var effectService in effectServices)
         {
-            if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
-                break;
+            if (nextChain != default && nextChain.Tracker.IsCancelled(nextChain.Id, nextChain.Version))
+                return;
 
             bool validationPassed = await RunEffectValidators(effectService!.GetType(), effectMiddlewares);
             if (!validationPassed)
@@ -195,23 +204,32 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             if (del(_action, dispatcherService.Dispatcher) is Task effectTask)
             {
                 effects.Add(effectTask);
-                if (_dispatchEffectBehavior == DispatchEffectBehavior.Parallel || _dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+                if (!_forceSyncronous && _dispatchEffectBehavior == DispatchEffectBehavior.Parallel)
                     _ = effectTask;
                 else
                     await effectTask;
             }
         }
-        if (_dispatchEffectExecutionBehavior == DispatchEffectExecutionBehavior.FireAndForget)
+        Task allEffects = Task.WhenAll(effects);
+
+        if (!allEffects.IsCompletedSuccessfully)
+            await allEffects;
+
+        if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior != Configuration.MiddlewareTaskBehavior.Await)
+            _ = Task.Run(async () =>
+            {
+                if (!effectMiddlewareTasks.IsCompletedSuccessfully)
+                    await effectMiddlewareTasks;
+                await RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
+            });
+        else
         {
-            _ = Task.WhenAll(effects);
-            _ = effectMiddlewareTasks;
-        }else
-        {
-            await Task.WhenAll(effects);
-            await effectMiddlewareTasks;
+            if (!effectMiddlewareTasks.IsCompletedSuccessfully)
+                await effectMiddlewareTasks;
+            await RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
         }
 
-           _ = RunMiddlewareEffect(effectMiddlewares, p => p.AfterEffect(_action), p => p == MiddlewareEffectBehavior.PerGroupEffects);
+
     }
     private async Task<bool> RunEffectValidators(Type effectService, IEnumerable<IEffectMiddleware> effectMiddlewares)
     {
@@ -251,8 +269,9 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
         foreach (var stateType in _statePulseRegistry.KnownStates)
         {
-            if (nextChain != default && _tracker.IsCancelled(nextChain.Id))
-                break;
+            bool isCancelled = nextChain != default && nextChain.Tracker.IsCancelled(nextChain.Id, nextChain.Version);
+            if (isCancelled)
+                return;
             var reducerType = typeof(IReducer<,>).MakeGenericType(stateType, actionType);
             var stateAccessorType = _statePulseRegistry.KnownStateToAccessors[stateType];
             var stateService = _serviceProvider.GetRequiredService(stateAccessorType);
@@ -271,17 +290,32 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                         currentState,
                         _action }!)!;
 
+                isCancelled = nextChain != default && nextChain.Tracker.IsCancelled(nextChain.Id, nextChain.Version);
+                if (isCancelled)
+                    return;
                 await reduceTask;
-                // make sure middlewares are done before starting to call after reduced
-                await middlewareTasks;
+
 
                 var newState = _statePulseRegistry.KnownReducersTaskResult[reducerType](reduceTask);
                 if (newState == null) throw new InvalidOperationException("Reducer returned null state.");
 
                 _statePulseRegistry.KnownStateAccessorsStateSetter[stateAccessorType](stateService, newState);
-                middlewareTasks = RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
-                if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
-                    await middlewareTasks;
+                // Regardless of settings ensure BeforeReducing is finished before calling after reducing.
+                if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior != Configuration.MiddlewareTaskBehavior.Await)
+                    _ = Task.Run(async () =>
+                    {
+                        if (!middlewareTasks.IsCompletedSuccessfully)
+                            await middlewareTasks;
+                        await RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
+                    });
+                else
+                {
+                    if (!middlewareTasks.IsCompletedSuccessfully)
+                        await middlewareTasks;
+                    await RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
+
+                }
+
             }
         }
     }

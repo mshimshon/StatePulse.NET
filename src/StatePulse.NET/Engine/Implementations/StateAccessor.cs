@@ -9,6 +9,8 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
     {
         InitializeState();
     }
+    public DateTime LastChange { get; set; }
+    public long Version { get; set; }
     private TState _state = default!;
     public TState State
     {
@@ -18,6 +20,7 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
             // make sure state can never be set null always has a default state.
             if (value == null) InitializeState();
             else _state = value;
+            LastChange = DateTime.UtcNow;
             OnStateChanged?.Invoke(this, _state);
             OnStateChangedNoDetails?.Invoke(this, new EventArgs());
         }

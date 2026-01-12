@@ -1,6 +1,7 @@
 ﻿using StatePulse.Net;
 
 namespace StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Middlewares;
+
 internal class MainMenuLoaderStartDispatchMiddleware : IDispatcherMiddleware, IEffectMiddleware, IReducerMiddleware
 {
     public Task AfterDispatch(object action)
@@ -38,6 +39,9 @@ internal class MainMenuLoaderStartDispatchMiddleware : IDispatcherMiddleware, IE
         Console.WriteLine($"{state.GetType().Name} {action.GetType().Name} Executed.");
         return Task.CompletedTask;
     }
+
+    public Task OnDispatchFailure(Exception exception, object action)
+    => Task.CompletedTask;
 
     public Task WhenEffectValidationFailed(object action, object effectValidator)
     {
