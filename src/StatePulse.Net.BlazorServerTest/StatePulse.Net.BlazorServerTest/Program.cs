@@ -11,7 +11,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddStatePulseServices(c =>
 {
     c.PulseTrackingPerformance = PulseTrackingModel.BlazorServerSafe;
-    c.DispatchEffectExecutionBehavior = DispatchEffectExecutionBehavior.YieldAndFire;
     c.DispatchEffectBehavior = DispatchEffectBehavior.Sequential;
 
     c.ScanAssemblies = [typeof(Program).Assembly, typeof(StatePulse.Net.BlazorServerTest.Client._Imports).Assembly];

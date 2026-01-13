@@ -260,16 +260,14 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;
 
-                var reduceTask = (Task)_statePulseRegistry.KnownReducersReduceMethod[reducerType](reducerService,
+                var newState = _statePulseRegistry.KnownReducersReduceMethod[reducerType](reducerService,
                     new object[] {
                         currentState,
                         _action }!)!;
-                await reduceTask;
 
                 if (IsChainCancelled(nextChain))
                     return;
 
-                var newState = _statePulseRegistry.KnownReducersTaskResult[reducerType](reduceTask);
                 if (newState == null) throw new InvalidOperationException("Reducer returned null state.");
 
                 long usedVersion = -1;

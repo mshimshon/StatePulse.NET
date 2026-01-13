@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <GlobalVersion>2.0.522</GlobalVersion>
+    <GlobalVersion>2.0.523</GlobalVersion>
 	<GlobalCopyright>Maksim Shimshon © 2026</GlobalCopyright>
   </PropertyGroup>
 

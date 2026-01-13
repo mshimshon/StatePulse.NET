@@ -2,8 +2,9 @@
 using StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Stores;
 
 namespace StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Reducers;
+
 internal class CounterIncreaseReducer : IReducer<CounterState, CounterIncreaseAction>
 {
-    public Task<CounterState> ReduceAsync(CounterState state, CounterIncreaseAction action)
-        => Task.FromResult(state with { Count = state.Count + 1 });
+    public CounterState Reduce(CounterState state, CounterIncreaseAction action)
+        => state with { Count = state.Count + 1 };
 }

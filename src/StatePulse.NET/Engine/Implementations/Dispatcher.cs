@@ -28,6 +28,9 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
         return CreatePrepper(createInstance.Invoke());
     }
 
+    public IDispatcherPrepper<TAction> Prepared<TAction>(TAction instance) where TAction : IAction
+        => CreatePrepper(instance);
+
     private IDispatcherPrepper<TAction> CreatePrepper<TAction>(TAction Instance) where TAction : IAction
     {
         var passKeyChain = _chainKey?.EntryType ?? typeof(TAction);

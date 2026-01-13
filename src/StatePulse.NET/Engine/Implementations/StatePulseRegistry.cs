@@ -41,10 +41,9 @@ internal class StatePulseRegistry : IStatePulseRegistry
     public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects[effectType] = interfaceType;
     public void RegisterReducer(Type reducerType, Type interfaceType)
     {
-        var reduceMethodName = nameof(IReducer<IStateFeature, IAction>.ReduceAsync);
+        var reduceMethodName = nameof(IReducer<IStateFeature, IAction>.Reduce);
         var method = reducerType.GetMethod(reduceMethodName)!;
-        var returnTaskType = method.ReturnType;
-        var stateType = returnTaskType.GetGenericArguments()[0]; // This is TState
+        var stateType = method.ReturnType; // This is TState
         _knownReducersTaskResult[reducerType] = stateType.BuildTaskResultGetter();
         _knownReducersReduceMethod[reducerType] = method.CreateDynamicReflectionInvoker();
         _knownReducers.TryAdd(reducerType, interfaceType);
