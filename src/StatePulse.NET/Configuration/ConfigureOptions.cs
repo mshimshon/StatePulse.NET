@@ -14,12 +14,16 @@ public class ConfigureOptions
     public PulseTrackingModel PulseTrackingPerformance { get; set; } = PulseTrackingModel.ThreadSafe;
     public Assembly[] ScanAssemblies { get; set; } = new Assembly[] { };
     public Type[] AutoRegisterTypes { get; set; } = new Type[] { };
-    private long _versionTicker;
 
+    private long _versionTicker;
+    private readonly static Object _lock = new();
     public long GetNextVersion()
     {
-        var next = Interlocked.Increment(ref _versionTicker);
-        return next;
+        lock (_lock)
+        {
+            var next = Interlocked.Increment(ref _versionTicker);
+            return next;
+        }
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿namespace StatePulse.Net;
+
 public interface IStatePulseRegistry
 {
 
@@ -9,7 +10,10 @@ public interface IStatePulseRegistry
     IReadOnlyList<Type> KnownActions { get; }
     IReadOnlyDictionary<Type, Type> KnownActionValidators { get; }
     IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsStateGetter { get; }
-    IReadOnlyDictionary<Type, Action<object, object?>> KnownStateAccessorsStateSetter { get; }
+    IReadOnlyDictionary<Type, Func<object, object, Type, long, Guid, bool>> KnownStateAccessorsStateUpdater { get; }
+
+    IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsVersionGetter { get; }
+
     IReadOnlyDictionary<Type, Func<object, object?>> KnownReducersTaskResult { get; }
     IReadOnlyDictionary<Type, Type> KnownStateToAccessors { get; }
 

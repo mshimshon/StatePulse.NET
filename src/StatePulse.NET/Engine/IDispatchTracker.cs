@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace StatePulse.Net.Engine;
+﻿namespace StatePulse.Net.Engine;
 
 public interface IDispatchTracker
 {
@@ -10,13 +8,8 @@ public interface IDispatchTracker
 }
 public interface IDispatchTracker<TAction> : IDispatchTracker where TAction : IAction
 {
-    public ConcurrentDictionary<Guid, DispatchEntry<TAction>> CancellationTracker { get; }
-    public EventHandler<DispatchEntry<TAction>>? OnCancel { get; set; }
-    public EventHandler<DispatchEntry<TAction>>? OnEntry { get; set; }
-    public void CreateEntryPoint(Guid id, object action);
-    public void DeleteEntryPoint(Guid id);
-    public void CancelDispatchFor(Guid id);
-    public void CancelAll();
-    public bool IsCancelled(Guid id);
-
+    IDispatchEntry CreateEntryPoint(Guid id, object action);
+    void DeleteEntryPoint(Guid id);
+    void CancelDispatchFor(Guid id);
+    void CancelAll();
 }

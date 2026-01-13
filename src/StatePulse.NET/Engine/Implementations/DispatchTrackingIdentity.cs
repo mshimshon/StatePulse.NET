@@ -4,6 +4,7 @@ public record DispatchTrackingIdentity
 {
     public Guid Id { get; init; }
     public Type EntryType { get; init; } = default!;
+    public IDispatchEntry TrackedEntry { get; set; } = default!;
     public long Version { get; init; }
-    public IDispatchTracker Tracker { get; init; } = default!;
+    public Func<IDispatchTracker> Tracker { get; init; } = default!;
 }

@@ -3,12 +3,16 @@
 namespace StatePulse.Net.Engine.Implementations;
 
 using StatePulse.Net;
+using System.Linq.Expressions;
+using System.Reflection;
+
 internal class StatePulseRegistry : IStatePulseRegistry
 {
     private readonly List<Type> _knownStates = new();
     private readonly Dictionary<Type, Type> _knownStateToAccessors = new();
     private readonly Dictionary<Type, Func<object, object?>> _knownStateAccessorsStateGetter = new();
-    private readonly Dictionary<Type, Action<object, object?>> _knownStateAccessorsStateSetter = new();
+    private readonly Dictionary<Type, Func<object, object, Type, long, Guid, bool>> _knownStateAccessorsStateUpdater = new();
+    private readonly Dictionary<Type, Func<object, object?>> _knownStateAccessorsVersionGetter = new();
 
     private readonly Dictionary<Type, Type> _knownEffects = new();
     private readonly Dictionary<Type, Type> _knownReducers = new();
@@ -24,13 +28,15 @@ internal class StatePulseRegistry : IStatePulseRegistry
     public IReadOnlyList<Type> KnownActions => _knownActions;
     public IReadOnlyDictionary<Type, Type> KnownActionValidators => _knownActionValidators;
     public IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsStateGetter => _knownStateAccessorsStateGetter;
-    public IReadOnlyDictionary<Type, Action<object, object?>> KnownStateAccessorsStateSetter => _knownStateAccessorsStateSetter;
+    public IReadOnlyDictionary<Type, Func<object, object, Type, long, Guid, bool>> KnownStateAccessorsStateUpdater => _knownStateAccessorsStateUpdater;
+    public IReadOnlyDictionary<Type, Func<object, object?>> KnownStateAccessorsVersionGetter => _knownStateAccessorsVersionGetter;
 
     public IReadOnlyDictionary<Type, Func<object, object?[], object?>> KnownReducersReduceMethod => _knownReducersReduceMethod;
 
     public IReadOnlyDictionary<Type, Func<object, object?>> KnownReducersTaskResult => _knownReducersTaskResult;
 
     public IReadOnlyDictionary<Type, Type> KnownStateToAccessors => _knownStateToAccessors;
+
 
     public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects[effectType] = interfaceType;
     public void RegisterReducer(Type reducerType, Type interfaceType)
@@ -50,7 +56,12 @@ internal class StatePulseRegistry : IStatePulseRegistry
 
         var property = accessorImplementationType.GetProperty(nameof(IStateAccessor<object>.State))!;
         _knownStateAccessorsStateGetter[accessorType] = property.CreateGetterDynamic();
-        _knownStateAccessorsStateSetter[accessorType] = property.CreateSetterDynamic();
+        var stateUpdateMethod = accessorImplementationType.GetMethod(nameof(IStateAccessor<object>.ChangeState))!;
+        _knownStateAccessorsStateUpdater[accessorType] = BuildChangeStateDelegate(stateUpdateMethod);
+
+        var propertyVersion = accessorImplementationType.GetProperty(nameof(IStateAccessor<object>.Version))!;
+        _knownStateAccessorsVersionGetter[accessorType] = propertyVersion.CreateGetterDynamic();
+
         _knownStateToAccessors[stateType] = accessorType;
         if (!_knownStates.Contains(stateType))
             _knownStates.Add(stateType);
@@ -61,5 +72,48 @@ internal class StatePulseRegistry : IStatePulseRegistry
             _knownActions.Add(actionType);
     }
     public void RegisterEffectValidator(Type actionValType, Type interfaceType) => _knownActionValidators[actionValType] = interfaceType;
+    private static Func<object, object, Type, long, Guid, bool> BuildChangeStateDelegate(
+        MethodInfo changeStateMethod)
+    {
+        // Parameters of the dynamic delegate
+        var targetParam = Expression.Parameter(typeof(object), "target");
+        var stateParam = Expression.Parameter(typeof(object), "state");
+        var originTypeParam = Expression.Parameter(typeof(Type), "originType");
+        var versionParam = Expression.Parameter(typeof(long), "version");
+        var writerParam = Expression.Parameter(typeof(Guid), "writer");
 
+        // Cast target to StateAccessor<TState>
+        var typedTarget = Expression.Convert(targetParam, changeStateMethod.DeclaringType!);
+
+        // Cast state to TState
+        var typedState = Expression.Convert(
+            stateParam,
+            changeStateMethod.GetParameters()[0].ParameterType
+        );
+
+        // Call ChangeState(TState, Type, long, Guid)
+        var call = Expression.Call(
+            typedTarget,
+            changeStateMethod,
+            typedState,
+            originTypeParam,
+            versionParam,
+            writerParam
+        );
+
+        // Wrap the call and return true (since ChangeState returns void)
+        var body = Expression.Block(
+            call,
+            Expression.Constant(true)
+        );
+
+        return Expression.Lambda<Func<object, object, Type, long, Guid, bool>>(
+            body,
+            targetParam,
+            stateParam,
+            originTypeParam,
+            versionParam,
+            writerParam
+        ).Compile();
+    }
 }

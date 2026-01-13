@@ -70,16 +70,9 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingBurstShouldTriggerSafetyCancel()
     {
         var scopedServices = ServiceProvider.CreateScope().ServiceProvider;
-        var dispatcher = scopedServices.GetRequiredService<IDispatcher>();
         var stateAccessor = scopedServices.GetRequiredService<IStateAccessor<ProfileCardState>>();
         var tracker = scopedServices.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
-        var tracker2 = scopedServices.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
-        int cancelled = 0;
-        tracker.OnCancel += (o, action) =>
-        {
 
-            cancelled++;
-        };
         // Dispatch action that changes state
         int changes = 0;
         stateAccessor.OnStateChanged += (s, state) =>
@@ -89,27 +82,27 @@ public class StatePulseInitTests : TestBase
         List<Guid> dispatches = new();
         Random random = new Random();
         int[] timing = [
-            50, // Entry
-            25, // Cancels 0
-            75, // 
-            50,
+            51, // Entry
+            22, // Cancels 0
+            73, // 
+            54,
             25,
-            50,
-            1000,
-            25,
-            50,
-            25
+            56,
+            1007,
+            28,
+            59,
+            20
         ];
         string winingValue = $"Profile";
         List<string> possibleRaceConditions = new();
         for (int i = 0; i < 10; i++)
         {
-            winingValue = $"Profile {random.Next()}";
-            var id = await dispatcher.Prepare<ProfileCardDefineAction>()
+            winingValue = $"Profile {timing[i]}";
+            var dispatcher = scopedServices.GetRequiredService<IDispatcher>();
+            _ = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, winingValue)
                 .With(p => p.Delay, timing[i])
                 .DispatchAsync(true);
-            dispatches.Add(id);
             possibleRaceConditions.Add(winingValue);
         }
         await Task.Delay(timing.Sum());
@@ -120,7 +113,7 @@ public class StatePulseInitTests : TestBase
 
 
         } while (changes <= 0);
-        bool isPassing = stateAccessor.State.ProfileName == possibleRaceConditions.Last();
+        bool isPassing = stateAccessor.State.ProfileName.Equals(winingValue);
         if (!isPassing) Debugger.Break();
         Assert.True(isPassing);
     }

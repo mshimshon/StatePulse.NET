@@ -1,7 +1,7 @@
 ﻿namespace StatePulse.Net.Engine;
 
 using StatePulse.Net;
-public class DispatchEntry<TAction> where TAction : IAction
+public class DispatchEntry<TAction> : IDispatchEntry where TAction : IAction
 {
     private readonly IDispatcherPrepper<TAction> _action;
     private readonly Guid _guid;
@@ -30,6 +30,8 @@ public class DispatchEntry<TAction> where TAction : IAction
         }
     }
 
-    public bool IsCancelled => _disposed == 1 || _tokenSource.IsCancellationRequested;
+    public bool IsCancelled =>
+        Volatile.Read(ref _disposed) == 1 ||
+        _tokenSource.IsCancellationRequested;
 }
 
