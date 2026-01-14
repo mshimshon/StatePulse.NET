@@ -2,26 +2,25 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-
-namespace StatePulse.Net.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class WithPropertyAnalyzer : DiagnosticAnalyzer
 {
-    public static readonly DiagnosticDescriptor InvalidPropertyRule =
-        new DiagnosticDescriptor(
-            id: "SP002",
-            title: "Property cannot be used with .With",
-            messageFormat: "Property '{0}' must be get; set;. It is get-only or init-only.",
-            category: "Usage",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+    public const string DiagnosticId = "SP002";
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(InvalidPropertyRule);
+    private static readonly DiagnosticDescriptor Rule =
+        new DiagnosticDescriptor(
+            DiagnosticId,
+            "Invalid With property",
+            "Property '{0}' must be get; set;. init-only or non-public setters are forbidden.",
+            "StatePulse",
+            DiagnosticSeverity.Error,
+            true
+        );
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        => ImmutableArray.Create(Rule);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -30,70 +29,50 @@ public sealed class WithPropertyAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
-        // Must be something like: .With(...)
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        var symbol = context.SemanticModel.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
+        if (symbol == null || symbol.Name != "With")
             return;
 
-        if (memberAccess.Name.Identifier.Text != "With")
-            return;
-
-        // Resolve the invoked method symbol
-        var symbol = context.SemanticModel.GetSymbolInfo(memberAccess).Symbol as IMethodSymbol;
-        if (symbol is null)
-            return;
-
-        // --- FILTER: Only our specific extension method ---
         if (!symbol.IsExtensionMethod)
             return;
 
-        if (symbol.Name != "With")
-            return;
-
-        // Namespace + class must match your extension class
         if (symbol.ContainingNamespace.ToDisplayString() != "StatePulse.Net")
             return;
 
-        if (symbol.ContainingType.Name != "DispatcherPrepperExtensions")
+        if (invocation.ArgumentList.Arguments.Count < 1)
             return;
 
-        // Must have at least one argument (the lambda)
-        if (invocation.ArgumentList.Arguments.Count == 0)
+        var arg = invocation.ArgumentList.Arguments[0].Expression;
+
+        if (arg is not LambdaExpressionSyntax lambda)
             return;
 
-        var lambdaExpr = invocation.ArgumentList.Arguments[0].Expression;
-
-        if (lambdaExpr is not LambdaExpressionSyntax lambda)
-            return;
-
-        // Lambda must be: p => p.Prop
-        if (lambda.Body is not MemberAccessExpressionSyntax propAccess)
-            return;
-
-        // Resolve the property symbol
-        var propSymbol = context.SemanticModel.GetSymbolInfo(propAccess).Symbol as IPropertySymbol;
-        if (propSymbol is null)
-            return;
-
-        var setter = propSymbol.SetMethod;
-
-        // --- PROPERTY VALIDATION ---
-        bool invalid =
-            setter is null ||                  // get-only
-            setter.IsInitOnly ||               // init-only
-            setter.DeclaredAccessibility != Accessibility.Public; // private/protected/internal setter
-
-        if (invalid)
+        ExpressionSyntax body = lambda switch
         {
-            var diagnostic = Diagnostic.Create(
-                InvalidPropertyRule,
-                propAccess.Name.GetLocation(),
-                propSymbol.Name);
+            SimpleLambdaExpressionSyntax s => s.Body as ExpressionSyntax,
+            ParenthesizedLambdaExpressionSyntax p => p.Body as ExpressionSyntax,
+            _ => null
+        };
 
-            context.ReportDiagnostic(diagnostic);
+        if (body is not MemberAccessExpressionSyntax member)
+            return;
+
+        var prop = context.SemanticModel.GetSymbolInfo(member).Symbol as IPropertySymbol;
+        if (prop == null)
+            return;
+
+        var setter = prop.SetMethod;
+
+        if (setter == null || setter.IsInitOnly || setter.DeclaredAccessibility != Accessibility.Public)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Rule,
+                member.Name.GetLocation(),
+                prop.Name));
         }
     }
 }
