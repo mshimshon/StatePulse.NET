@@ -4,6 +4,7 @@ using StatePulse.Net.Engine.Extensions;
 using System.Reflection;
 
 namespace StatePulse.Net.Engine;
+
 internal abstract class PulseLazyStateBase : IStatePulse
 {
     private bool _disposed;
@@ -12,10 +13,14 @@ internal abstract class PulseLazyStateBase : IStatePulse
     private WeakReference<object?> _instance = new WeakReference<object?>(default);
     private Func<object, Task> _compiledListener = default!;
     private MethodInfo _methodListener = default!;
+
+    public IDispatcher Dispatcher { get; private set; }
+
     public PulseLazyStateBase(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _globalStash = services.GetRequiredService<IPulseGlobalTracker>();
+        Dispatcher = services.GetRequiredService<IDispatcher>();
     }
     /// <summary>
     /// Should be implemented by children class
