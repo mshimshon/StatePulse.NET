@@ -1,7 +1,6 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 using StatePulse.Net.Engine.Extensions;
-using System.Reflection;
 
 namespace StatePulse.Net.Engine;
 
@@ -12,11 +11,10 @@ internal abstract class PulseLazyStateBase : IStatePulse
     private readonly IPulseGlobalTracker _globalStash;
     private WeakReference<object?> _instance = new WeakReference<object?>(default);
     private Func<object, Task> _compiledListener = default!;
-    private MethodInfo _methodListener = default!;
 
     public IDispatcher Dispatcher { get; private set; }
 
-    public PulseLazyStateBase(IServiceProvider services)
+    protected PulseLazyStateBase(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _globalStash = services.GetRequiredService<IPulseGlobalTracker>();
@@ -27,7 +25,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    protected virtual IDictionary<Type, IStateAccessor<object>> GetState() => throw new NotImplementedException();
+    protected virtual IDictionary<Type, object> GetState() => throw new NotImplementedException();
     private TState StateOf<TState>(Func<object> getInstance) where TState : IStateFeature
     {
         var instance = getInstance();
@@ -40,9 +38,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
         {
             var accessorType = typeof(IStateAccessor<>).MakeGenericType(type);
             var service = _services.GetRequiredService(accessorType);
-            var serviceObject = (IStateAccessor<object>)service;
-            GetState().TryAdd(type, serviceObject);
-
+            GetState().TryAdd(type, service);
             var accessor = (IStateAccessor<TState>)service;
             _globalStash.Register(this);
             accessor.OnStateChangedNoDetails -= OnStateChanged;
@@ -73,7 +69,7 @@ internal abstract class PulseLazyStateBase : IStatePulse
         if (_disposed) return;
         _disposed = true;
         _globalStash.UnRegister(this);
-        foreach (var item in GetState().Values)
+        foreach (var item in GetState().Values.Select(p => (IStateAccessor)p))
             item.OnStateChangedNoDetails -= OnStateChanged;
 
     }
@@ -81,8 +77,8 @@ internal abstract class PulseLazyStateBase : IStatePulse
     public TState StateOf<TState>(Func<object> getInstance, Func<Task> onStateChanged) where TState : IStateFeature
     {
         var instance = getInstance();
-        _methodListener = onStateChanged.GetMethodInfoOrThrow();
-        _compiledListener = _methodListener.CreateDynamicInvoker();
+        var c = onStateChanged.GetMethodInfoOrThrow();
+        _compiledListener = c.CreateDynamicInvoker();
         return StateOf<TState>(() => instance);
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System.Collections.Concurrent;
 namespace StatePulse.Net.Engine.Implementations;
+
 internal sealed class PulseLazyStateBlazorServer : PulseLazyStateBase
 {
-    private readonly ConcurrentDictionary<Type, IStateAccessor<object>> _stash = new();
+    private readonly ConcurrentDictionary<Type, object> _stash = new();
     public PulseLazyStateBlazorServer(IServiceProvider services) : base(services)
     {
     }
-    protected override IDictionary<Type, IStateAccessor<object>> GetState() => _stash;
+    protected override IDictionary<Type, object> GetState() => _stash;
 }

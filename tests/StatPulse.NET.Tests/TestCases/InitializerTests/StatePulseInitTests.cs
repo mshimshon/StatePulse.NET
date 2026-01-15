@@ -40,6 +40,20 @@ public class StatePulseInitTests : TestBase
 
         Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
     }
+    public Task OnUpdate() => Task.CompletedTask;
+    // Testing action dispatch
+    [Fact]
+    public async Task DispatchingActionShouldChangeStateUsingStateOf()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var sp = ServiceProvider.GetRequiredService<IStatePulse>();
+        var state = () => sp.StateOf<ProfileCardState>(() => this, OnUpdate);
+        // Dispatch action that changes state
+        var action = new ProfileCardDefineAction();
+        await dispatcher.Prepare(() => action).Await().DispatchAsync();
+
+        Assert.Equal("Maksim Shimshon", state().ProfileName);
+    }
 
     [Fact]
     public async Task DispatchingEffectShouldCorrectlyTriggerActions()

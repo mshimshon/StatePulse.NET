@@ -47,4 +47,7 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
         var obj = Activator.CreateInstance<TState>();
         _state = obj;
     }
+
+    public T GetAs<T>() where T : class, IStateFeature
+        => (State as T)!;
 }
