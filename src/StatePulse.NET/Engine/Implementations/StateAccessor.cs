@@ -28,7 +28,7 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
     public event OnChangeEventHandler<TState>? OnStateChanged;
     public event EventHandler? OnStateChangedNoDetails;
 
-    public readonly static Object _lock = new object();
+    public readonly Object _lock = new object();
     public bool ChangeState(TState state, Type originType, long version, Guid dispatchWriter)
     {
         lock (_lock)
