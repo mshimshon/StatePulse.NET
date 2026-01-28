@@ -74,7 +74,7 @@ jobs:
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
               "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${VERSION}.json")
 
-            # NuGet returns 200 if version exists, 404 if not
+            # NuGet returns 200 if version exists, 404 if not 
             [ "$STATUS" -eq 200 ] || exit 1
 
 
