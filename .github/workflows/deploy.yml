@@ -35,9 +35,12 @@ jobs:
       - name: Restore dependencies
         run: |
           dotnet restore src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj
+          dotnet restore src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj
       
       - name: Build StatePulse.Net.Abstractions
-        run: dotnet build src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-restore
+        run: |
+          dotnet build src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-restore
+          dotnet build src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj -c Release --no-restore
       
       - name: Pack StatePulse.Net.Abstractions
         run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-build -o ./artifacts
@@ -99,9 +102,12 @@ jobs:
       - name: Restore dependencies
         run: |
           dotnet restore src/StatePulse.NET/StatePulse.NET.csproj
+          dotnet restore src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj
       
       - name: Build StatePulse.NET
-        run: dotnet build src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-restore
+        run: |
+          dotnet build src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-restore
+          dotnet build src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj -c Release --no-restore
       
       - name: Pack StatePulse.NET
         run: dotnet pack src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-build -o ./artifacts
