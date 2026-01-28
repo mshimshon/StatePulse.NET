@@ -58,7 +58,7 @@ jobs:
         id: get_version
         run: |
           FILE=$(ls ./artifacts/*.nupkg | head -n1)
-          VERSION=$(basename "$FILE" | sed -E 's/^[^.]+\.([0-9]+\.[0-9]+\.[0-9]+)\.nupkg$/\1/')
+          VERSION=$(basename "$FILE" | sed -E 's/^.*\.([0-9]+\.[0-9]+\.[0-9]+).*\.nupkg$/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Wait for NuGet availability
