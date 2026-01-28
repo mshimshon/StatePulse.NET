@@ -1,0 +1,42 @@
+using StatePulse.Net;
+using StatePulse.Net.BlazorServerTest.Components;
+using StatePulse.Net.Configuration;
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddStatePulseServices(c =>
+{
+    c.PulseTrackingPerformance = PulseTrackingModel.BlazorServerSafe;
+    c.DispatchEffectBehavior = DispatchEffectBehavior.Sequential;
+
+    c.ScanAssemblies = [typeof(Program).Assembly, typeof(StatePulse.Net.BlazorServerTest.Client._Imports).Assembly];
+});
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseHttpsRedirection();
+
+app.UseAntiforgery();
+
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies(typeof(StatePulse.Net.BlazorServerTest.Client._Imports).Assembly);
+
+app.Run();

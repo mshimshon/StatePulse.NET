@@ -2,12 +2,15 @@
 
 internal class DispatchFactory : IDispatchFactory
 {
-    private readonly Dispatcher _dispatcher;
+    private readonly IServiceProvider _serviceProvider;
+
     public DispatchFactory(IServiceProvider serviceProvider)
     {
-        _dispatcher = new Dispatcher(serviceProvider);
+        _serviceProvider = serviceProvider;
     }
-    public IDispatcher Dispatcher => _dispatcher;
-
-    public IDispatchHandler DispatchHandler => _dispatcher;
+    public DispatchFactoryElement CreateDispatch()
+    {
+        var dispatch = new Dispatcher(_serviceProvider);
+        return new DispatchFactoryElement(dispatch);
+    }
 }

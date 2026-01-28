@@ -9,7 +9,9 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
     {
         InitializeState();
     }
+    public StateVersioning Version { get; set; } = new(typeof(TState), -1, Guid.Empty);
     private TState _state = default!;
+
     public TState State
     {
         get => _state; set
@@ -26,10 +28,26 @@ internal class StateAccessor<TState> : IStateController<TState>, IStateAccessor<
     public event OnChangeEventHandler<TState>? OnStateChanged;
     public event EventHandler? OnStateChangedNoDetails;
 
+    public readonly Object _lock = new object();
+    public bool ChangeState(TState state, Type originType, long version, Guid dispatchWriter)
+    {
+        lock (_lock)
+        {
+            if (version >= 0 && Version.Version > version)
+                return false;
+            Version = new(originType, version, dispatchWriter);
+            State = state;
+            return true;
+        }
+
+    }
     private void InitializeState()
     {
         // add default initialized state.
         var obj = Activator.CreateInstance<TState>();
         _state = obj;
     }
+
+    public T GetAs<T>() where T : class, IStateFeature
+        => (State as T)!;
 }
