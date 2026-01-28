@@ -69,6 +69,7 @@ jobs:
           max_attempts: 60
           command: |
             VERSION="${{ steps.get_version.outputs.version }}"
+            echo "VERSION=>>${{ steps.get_version.outputs.version }}<<"
 
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
               "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${VERSION}.json")
