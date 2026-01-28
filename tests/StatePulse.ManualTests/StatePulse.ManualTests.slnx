@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StatePulse.Net.BlazorServerTest.Client/StatePulse.Net.BlazorServerTest.Client.csproj" />
+  <Project Path="StatePulse.Net.BlazorServerTest/StatePulse.Net.BlazorServerTest.csproj" />
+</Solution>

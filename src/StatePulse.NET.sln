@@ -18,10 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.NET", "StatePuls
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Abstractions", "StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj", "{EEC112B4-18B6-414F-BC15-F525B2C90AEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.BlazorServerTest", "StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest.csproj", "{91D39E25-8E38-45A0-A0BD-E59AC72EA507}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.BlazorServerTest.Client", "StatePulse.Net.BlazorServerTest\StatePulse.Net.BlazorServerTest.Client\StatePulse.Net.BlazorServerTest.Client.csproj", "{DCB8495F-3B22-4797-A027-C61850527E2B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Benchmark", "StatePulse.Net.Benchmark\StatePulse.Net.Benchmark.csproj", "{1608523F-D5DA-4C8D-AF14-F89565929876}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatePulse.Net.Analyzers", "StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj", "{23754E59-BBAC-72AF-5A0C-48C0197057C1}"
@@ -44,14 +40,6 @@ Global
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEC112B4-18B6-414F-BC15-F525B2C90AEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91D39E25-8E38-45A0-A0BD-E59AC72EA507}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DCB8495F-3B22-4797-A027-C61850527E2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DCB8495F-3B22-4797-A027-C61850527E2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DCB8495F-3B22-4797-A027-C61850527E2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DCB8495F-3B22-4797-A027-C61850527E2B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1608523F-D5DA-4C8D-AF14-F89565929876}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1608523F-D5DA-4C8D-AF14-F89565929876}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1608523F-D5DA-4C8D-AF14-F89565929876}.Release|Any CPU.ActiveCfg = Release|Any CPU

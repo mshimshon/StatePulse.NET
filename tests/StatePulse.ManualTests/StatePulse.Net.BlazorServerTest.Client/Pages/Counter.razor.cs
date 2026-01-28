@@ -13,7 +13,7 @@ public partial class Counter : ComponentBase
     private int Update { get; set; }
 
     public CounterSingletonState Shared => _statePulse.StateOf<CounterSingletonState>(() => this, OnUpdate);
-    public CounterState State => _statePulse.StateOf<CounterState>(() => this, () => OnUpdate());
+    public CounterState State => _statePulse.StateOf<CounterState>(() => this, OnUpdate);
     private async Task OnUpdate() => await InvokeAsync(StateHasChanged);
 
     protected override void OnInitialized()
