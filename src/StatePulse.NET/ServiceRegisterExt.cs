@@ -15,11 +15,12 @@ public static class ServiceRegisterExt
     private static StatePulseRegistry Registry = new StatePulseRegistry();
 
 
-    public static IServiceCollection AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions> configure)
+    public static IServiceCollection AddStatePulseServices(this IServiceCollection services, Action<ConfigureOptions>? configure = default)
     {
         services.AddScoped<IDispatcher, Dispatcher>();
         services.AddScoped<IDispatchFactory, DispatchFactory>();
-        configure(ConfigureOptions);
+        if (configure != default)
+            configure(ConfigureOptions);
 
         bool isSingleThreadModel = ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.SingleThreadFast || ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.BlazorWebAssemblyFast;
         if (isSingleThreadModel)

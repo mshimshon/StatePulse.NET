@@ -25,10 +25,7 @@ public abstract class TestBase : IDisposable
         ServiceCollection = new ServiceCollection();
         // TOOD: Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
         // service exceptions du to thread safe on bulk testing.
-        ServiceCollection.AddStatePulseServices(o =>
-        {
-
-        });
+        ServiceCollection.AddStatePulseServices();
         ServiceCollection.AddStatePulseService<MainMenuLoaderStartAction>();
         ServiceCollection.AddStatePulseService<MainMenuLoaderStopAction>();
         ServiceCollection.AddStatePulseService<MainMenuLoadNavigationItemsAction>();
