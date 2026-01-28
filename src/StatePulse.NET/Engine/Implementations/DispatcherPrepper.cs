@@ -71,6 +71,7 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
     private static MethodInfo? _cachedEffectMethod;
     private static MethodInfo? _cachedActionValidatorMethod;
+    private static readonly object _lock = new();
     protected async Task ProcessDispatch(bool entryPoint, Guid nextId)
     {
         // we are tracking next chain key only when there is an entry point to avoid tracker during fast dispatch.
@@ -173,8 +174,10 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 continue; // skip
 
 
-            if (_cachedEffectMethod == default)
-                _cachedEffectMethod = effectType.GetMethod(nameof(IEffect<IAction>.EffectAsync))!;
+            lock (_lock)
+                if (_cachedEffectMethod == default)
+                    _cachedEffectMethod = effectType.GetMethod(nameof(IEffect<IAction>.EffectAsync))!;
+
 
             var del = (Func<TAction, IDispatcher, Task>)Delegate.CreateDelegate(typeof(Func<TAction, IDispatcher, Task>), effectService, _cachedEffectMethod);
             if (del(_action, dispatcherService.Dispatcher) is Task effectTask)
