@@ -1,12 +1,29 @@
-﻿namespace StatePulse.Net.Configuration;
+﻿using System.Reflection;
+
+namespace StatePulse.Net.Configuration;
+
 public class ConfigureOptions
 {
     /// <summary>
     /// Scoped on WASM = Singleton, Singleton on Blazor Server = Chaos Data Leakage
     /// </summary>
-    public Lifetime ServiceLifetime { get; set; } = Lifetime.Scoped;
-    public MiddlewareEffectBehavior MiddlewareEffectBehavior { get; internal set; } = MiddlewareEffectBehavior.PerGroupEffects;
-    public MiddlewareTaskBehavior MiddlewareTaskBehavior { get; internal set; } = MiddlewareTaskBehavior.DoNotAwait;
-    public DispatchEffectBehavior DispatchEffectBehavior { get; internal set; } = DispatchEffectBehavior.Parallel;
-    public Type[] ScanAssemblies { get; set; } = new Type[] { };
+    public MiddlewareEffectBehavior MiddlewareEffectBehavior { get; set; } = MiddlewareEffectBehavior.PerGroupEffects;
+    public MiddlewareTaskBehavior MiddlewareTaskBehavior { get; set; } = MiddlewareTaskBehavior.DoNotAwait;
+    public DispatchEffectBehavior DispatchEffectBehavior { get; set; } = DispatchEffectBehavior.Parallel;
+    public DispatchOrdering DispatchOrderBehavior { get; set; } = DispatchOrdering.ReducersFirst;
+    public PulseTrackingModel PulseTrackingPerformance { get; set; } = PulseTrackingModel.ThreadSafe;
+    public Assembly[] ScanAssemblies { get; set; } = new Assembly[] { };
+    public Type[] AutoRegisterTypes { get; set; } = new Type[] { };
+
+    private long _versionTicker;
+    private readonly static Object _lock = new();
+    public long GetNextVersion()
+    {
+        lock (_lock)
+        {
+            var next = Interlocked.Increment(ref _versionTicker);
+            return next;
+        }
+    }
+
 }

@@ -1,6 +1,6 @@
 ﻿namespace StatePulse.Net.Engine;
-public interface IDispatchFactory
+
+internal interface IDispatchFactory
 {
-    IDispatcher Dispatcher { get; }
-    IDispatchHandler DispatchHandler { get; }
+    DispatchFactoryElement CreateDispatch();
 }

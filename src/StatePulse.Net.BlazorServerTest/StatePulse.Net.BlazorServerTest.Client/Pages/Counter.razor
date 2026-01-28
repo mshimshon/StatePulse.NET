@@ -1,0 +1,27 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>
+    Counter (@($"{Update} Updates"))</h1>
+
+
+<p role="status">Current Singleton count: @Shared.Count</p>
+<button class="btn btn-primary" @onclick=SingletonIncrease>Click for Singleton</button>
+<p role="status">Current count: @State.Count</p>
+<button class="btn btn-primary" @onclick=Increase>Click Normal</button>
+
+<hr/>
+<p>
+    Global Tracker Info: @($"{_pulseGlobalTracker.ActivePulsars} Pulsars")</p>
+<p>Global Tracker Info: </p>
+@foreach (var t in _statePulseRegistry.KnownStates)
+{
+    <p>@t.FullName</p>
+}
+
+@foreach (var t in _statePulseRegistry.KnownStateToAccessors)
+{
+    <p>@t.Value.FullName</p>
+}

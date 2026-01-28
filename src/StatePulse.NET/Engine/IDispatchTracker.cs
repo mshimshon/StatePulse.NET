@@ -1,11 +1,15 @@
 ﻿namespace StatePulse.Net.Engine;
-public interface IDispatchTracker<TAction> where TAction : IAction
+
+public interface IDispatchTracker
 {
-    public EventHandler<DispatchEntry<TAction>>? OnCancel { get; set; }
-    public EventHandler<DispatchEntry<TAction>>? OnEntry { get; set; }
-    public void CreateEntryPoint(Guid id, object action);
-    public void DeleteEntryPoint(Guid id);
-    public void CancelDispatchFor(Guid id);
-    public void CancelAll();
-    public bool IsCancelled(Guid id);
+    public bool IsCancelled(Guid id, long version);
+    public long CurrentVersion { get; }
+    public bool CreateExecutingAction(Guid id, object action, long version);
+}
+public interface IDispatchTracker<TAction> : IDispatchTracker where TAction : IAction
+{
+    IDispatchEntry CreateEntryPoint(Guid id, object action);
+    void DeleteEntryPoint(Guid id);
+    void CancelDispatchFor(Guid id);
+    void CancelAll();
 }

@@ -13,6 +13,9 @@ concurrency:
 jobs:
   deploy-abstraction:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && 
@@ -38,14 +41,44 @@ jobs:
       
       - name: Pack StatePulse.Net.Abstractions
         run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-build -o ./artifacts
-      
+
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push StatePulse.Net.Abstractions
-        run: dotnet nuget push ./artifacts/StatePulse.Net.Abstractions.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-      - name: Wait for NuGet indexing
-        run: sleep 120
+        run: dotnet nuget push ./artifacts/StatePulse.Net.Abstractions.*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Get package version
+        id: get_version
+        run: |
+          FILE=$(ls ./artifacts/*.nupkg | head -n1)
+          VERSION=$(basename "$FILE" | sed -E 's/MaksimShimshon.RestCountries\.([0-9]+\.[0-9]+\.[0-9]+)\.nupkg/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Wait for NuGet availability
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 10
+          retry_wait_seconds: 10
+          max_attempts: 60
+          command: |
+            body=$(curl -s --compressed \
+              -H "Accept: application/json" \
+              "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${{ steps.get_version.outputs.version }}.json" \
+              | tr -d '\000')
+
+            echo "$body" | head -c 5 | grep -q "<?xml" && exit 1
+            echo "$body" | grep -q '"@type"' || exit 1
+
   deploy-core:
     needs: deploy-abstraction
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && 
@@ -72,6 +105,12 @@ jobs:
       
       - name: Pack StatePulse.NET
         run: dotnet pack src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-build -o ./artifacts
-      
+
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push StatePulse.NET
-        run: dotnet nuget push ./artifacts/StatePulse.NET.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./artifacts/StatePulse.NET.*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate

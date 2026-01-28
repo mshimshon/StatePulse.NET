@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
 	<LangVersion>12.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -11,14 +11,14 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageReadmeFile>0.Versions.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/mshimshon/StatePulse.NET</PackageProjectUrl>
-    <Copyright>Maksim Shimshon © 2025</Copyright>
     <Product>StatePulse.NET</Product>
     <Company />
     <Authors>Maksim Shimshon</Authors>
-    <Version>1.1.0</Version>
+    <Version>$(GlobalVersion)</Version>
+    <Copyright>$(GlobalCopyright)</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
+    <Description>StatePulse.NET delivers fast, consistent state and action dispatch with optional tracking and anti‑duplicate flow control. It supports ordered chaining when required, while preserving high‑performance fire‑and‑yield behavior for everyday scenarios.</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>blazor;state management;flux;dotnet;redux;components;webassembly</PackageTags>
     </PropertyGroup>
@@ -31,16 +31,12 @@
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
-      <None Include="..\..\doc\statepulse-doc\docs\0.Versions.md">
+      <None Include="..\..\doc\docs\0.Versions.md">
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
     </ItemGroup>
 	
-	<!-- For .NET 6 and .NET Standard, use version 7.x -->
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-	</ItemGroup>
 
 	<!-- For .NET 8, use version 9.x -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
@@ -51,23 +47,14 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
 	</ItemGroup>
-	
-	<!-- Reference Project Directly while not packing -->
-	<ItemGroup Condition="'$(IsPackable)' != 'true'">
-		<ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
-	</ItemGroup>
 
 	<!-- Reference Package at Pack Time -->
-	<ItemGroup Condition="'$(IsPackable)' == 'true'">
-		<PackageReference Include="StatePulse.Net.Abstractions" Version="*" />
-	</ItemGroup>
+	<!--<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<PackageReference Include="StatePulse.Net.Abstractions" Version="1.1.0" />
+	</ItemGroup>-->
 	
 	<ItemGroup>
-    <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
-    <ProjectReference Include="..\StatePulse.Net.Analyzers\StatePulse.Net.Analyzers.csproj">
-      <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
-    </ProjectReference>
-    <None Include="..\StatePulse.Net.Analyzers\bin\$(Configuration)\netstandard2.0\StatePulse.Net.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <ProjectReference Include="..\StatePulse.Net.Abstractions\StatePulse.Net.Abstractions.csproj" />
     </ItemGroup>
 
     <Target Name="CopyNuPkg" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
