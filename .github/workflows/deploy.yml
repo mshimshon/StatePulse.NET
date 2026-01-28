@@ -68,13 +68,14 @@ jobs:
           retry_wait_seconds: 10
           max_attempts: 60
           command: |
-            body=$(curl -s --compressed \
-              -H "Accept: application/json" \
-              "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${{ steps.get_version.outputs.version }}.json" \
-              | tr -d '\000')
+            VERSION="${{ steps.get_version.outputs.version }}"
 
-            echo "$body" | head -c 5 | grep -q "<?xml" && exit 1
-            echo "$body" | grep -q '"@type"' || exit 1
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${VERSION}.json")
+
+            # NuGet returns 200 if version exists, 404 if not
+            [ "$STATUS" -eq 200 ] || exit 1
+
 
   deploy-core:
     needs: deploy-abstraction
