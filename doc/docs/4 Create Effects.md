@@ -89,3 +89,44 @@ internal class IncrementEffectValidator : IEffectValidator<IncrementCounterActio
 }
 
 ```
+
+
+## ⚙️ What are Effect Middlewares?
+
+StatePulse uses **middleware interfaces** to tap into the lifecycle of **effects**, **reducers**, and **dispatches**.  
+These middleware hooks are useful for **logging**, **metrics**, **analytics**, or **debugging** — but should **never alter behavior** or mutate state.
+
+> ❗ Middleware is observational only — do not use it to change logic or outcomes.
+
+`IEffectMiddleware` allows you to hook into the execution of any effect.
+
+### Available Hooks
+
+- `BeforeEffect(object action)` – called **before** the effects run
+- `AfterEffect(object action)` – called **after** the effects completed
+- `WhenEffectValidationFailed(object action, object effectValidator)` – called when a validator fails.
+- `WhenEffectValidationSucceed(object action, object effectValidator)` – called when a validator passes
+
+### Example: Effect Middleware
+
+```csharp title="LoggingMiddleware.cs"
+internal class LoggingMiddleware : IEffectMiddleware
+{
+    private readonly ILogger _logger;
+
+    public LoggingMiddleware(ILogger<LoggingMiddleware> logger)
+    {
+        _logger = logger;
+    }
+    public Task AfterEffect(object action)
+    {
+        string message = $"{action.GetType()} finished execution.";
+        _logger.LogDebug(message);
+        return Task.CompletedTask;
+    }
+    public Task BeforeEffect(object action) => Task.CompletedTask;
+    public Task WhenEffectValidationFailed(object action, object effectValidator) => Task.CompletedTask;
+    public Task WhenEffectValidationSucceed(object action, object effectValidator) => Task.CompletedTask;
+}
+
+```
