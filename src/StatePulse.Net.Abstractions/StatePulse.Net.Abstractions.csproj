@@ -18,7 +18,7 @@
 		<Copyright>$(GlobalCopyright)</Copyright>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<Description>StatePulse.NET enables fast, consistent state/action dispatch with optional tracking and anti-duplicate flow control. It supports ordered chaining when needed, while maintaining high-performance fire-and-forget behavior for general use cases.</Description>
+		<Description>StatePulse.NET delivers fast, consistent state and action dispatch with optional tracking and anti‑duplicate flow control. It supports ordered chaining when required, while preserving high‑performance fire‑and‑yield behavior for everyday scenarios.</Description>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageTags>blazor;state management;flux;dotnet;redux;components;webassembly</PackageTags>
 	</PropertyGroup>
