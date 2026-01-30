@@ -10,18 +10,19 @@
 <p role="status">Current Singleton count: @Shared.Count</p>
 <button class="btn btn-primary" @onclick=SingletonIncrease>Click for Singleton</button>
 <p role="status">Current count: @State.Count</p>
+<p role="status">Current sub-count: @State.SubCount</p>
 <button class="btn btn-primary" @onclick=Increase>Click Normal</button>
 
 <hr/>
 <p>
-    Global Tracker Info: @($"{_pulseGlobalTracker.ActivePulsars} Pulsars")</p>
+    Global Tracker Info: @($"{PulseGlobalTracker.ActivePulsars} Pulsars")</p>
 <p>Global Tracker Info: </p>
-@foreach (var t in _statePulseRegistry.KnownStates)
+@foreach (var t in StatePulseRegistry.KnownStates)
 {
     <p>@t.FullName</p>
 }
 
-@foreach (var t in _statePulseRegistry.KnownStateToAccessors)
+@foreach (var t in StatePulseRegistry.KnownStateToAccessors)
 {
     <p>@t.Value.FullName</p>
 }

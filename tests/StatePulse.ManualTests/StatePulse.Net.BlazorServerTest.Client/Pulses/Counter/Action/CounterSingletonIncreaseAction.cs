@@ -1,4 +1,5 @@
 ﻿namespace StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Action;
-public class CounterSingletonIncreaseAction : IAction
+
+public sealed record CounterSingletonIncreaseAction : IAction
 {
 }

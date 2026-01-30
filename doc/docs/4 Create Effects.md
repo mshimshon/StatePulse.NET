@@ -5,7 +5,10 @@ tags: [blazor, effects, state-management, async, side-effects, statepulse, cshar
 sidebar_position: 5
 ---
 
+
 ## What are Effects
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/aSbL5c3oOJw?si=muTuFDW4iX12eBeF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 **Effects** are units of logic that run **in response to an action**, before any associated reducers are invoked.
 

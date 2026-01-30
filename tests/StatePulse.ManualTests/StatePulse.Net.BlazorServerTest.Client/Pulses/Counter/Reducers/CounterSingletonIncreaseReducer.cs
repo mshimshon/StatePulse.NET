@@ -1,5 +1,5 @@
 ﻿using StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Action;
-using StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Stores;
+using StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.States;
 
 namespace StatePulse.Net.BlazorServerTest.Client.Pulses.Counter.Reducers;
 

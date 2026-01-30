@@ -41,6 +41,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          
           sidebarPath: './sidebars.ts',
           routeBasePath: '/', // Set this value to '/'.
           // Please change this to your repo.
@@ -73,7 +74,9 @@ const config: Config = {
   themeConfig: {
 
 
-  
+    metadata: [
+      { name: 'Content-Security-Policy', content: "frame-src https://www.youtube.com https://player.vimeo.com" },
+    ],
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {

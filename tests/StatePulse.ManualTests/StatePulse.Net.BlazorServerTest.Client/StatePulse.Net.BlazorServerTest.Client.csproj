@@ -12,12 +12,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.1" />
-    <PackageReference Include="StatePulse.Net.Abstractions" Version="2.0.0" />
+    <PackageReference Include="StatePulse.Net" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Contracts\Responses\" />
-    <Folder Include="Pulses\Counter\Effects\" />
     <Folder Include="Pulses\Counter\Middlewares\" />
   </ItemGroup>
 

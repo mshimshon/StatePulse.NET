@@ -11,10 +11,11 @@ builder.Services.AddRazorComponents()
 builder.Services.AddStatePulseServices(c =>
 {
     c.PulseTrackingPerformance = PulseTrackingModel.BlazorServerSafe;
-    c.DispatchEffectBehavior = DispatchEffectBehavior.Sequential;
-
+    c.DispatchEffectBehavior = DispatchEffectBehavior.Parallel;
     c.ScanAssemblies = [typeof(Program).Assembly, typeof(StatePulse.Net.BlazorServerTest.Client._Imports).Assembly];
 });
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -8,11 +8,18 @@
 # StatePulse.NET
 ### [Official Documentation](https://statepulse.net/)
 
+## What is StatePulse.NET?
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6XKSyUe9yOM?si=nnclq5_ap3szxqrT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+</iframe>
+
 StatePulse.NET is a precision‑engineered state and action management system designed for high‑performance fire‑and‑yield workflows. It supports optional, internally controlled execution ordering when deterministic sequencing is explicitly required.
 Its multi‑layer anti‑duplication pipeline eliminates redundant dispatches, prevents race conditions, and maintains consistent outcomes even under rapid input or concurrent triggers.
 A lightweight internal tracking core provides near‑zero‑overhead cancellation and dispatch control, minimizing inconsistency without sacrificing throughput.
 Despite these guarantees, StatePulse.NET preserves the flexibility of traditional untracked state management, allowing developers to selectively enforce ordering and reliability without introducing global locks or compromising responsiveness.
 
+# Getting Started
+<iframe width="560" height="315" src="https://www.youtube.com/embed/YkntxdIyZIU?si=pB1MDG549lB4F2T2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Features
 
@@ -55,14 +62,15 @@ Runs Before and After the reducer, enabling patterns such as event dispatch on s
 
 
 ## Benchmark
-| Method                                         | Mean       | Error     | StdDev    | Median     |
-|----------------------------------------------- |-----------:|----------:|----------:|-----------:|
-| StatePulse_Dispatch                            |   2.458 μs | 0.0344 μs | 0.0322 μs |   2.455 μs |
-| StatePulse_BusrtDispatch                       | 321.243 μs | 4.6181 μs | 4.3198 μs | 322.030 μs |
-| StatePulse_BusrtSafeDispatch                   | 350.282 μs | 4.4814 μs | 4.1919 μs | 351.182 μs |
-| StatePulse_FireYieldDispatch                   |   3.193 μs | 0.0631 μs | 0.0675 μs |   3.193 μs |
-| StatePulse_FireYield_SequentialEffectsDispatch |   3.326 μs | 0.0661 μs | 0.0969 μs |   3.303 μs |
-| StatePulse_AwaitedDispatch                     |   4.420 μs | 0.6850 μs | 2.0196 μs |   3.165 μs |
+| Method                                         | Mean       | Error     | StdDev     |
+|----------------------------------------------- |-----------:|----------:|-----------:|
+| StatePulse_Dispatch                            |   2.463 μs | 0.0161 μs |  0.0134 μs |
+| StatePulse_SafeDispatch                        |   3.838 μs | 0.0712 μs |  0.1501 μs |
+| StatePulse_BusrtDispatch                       | 332.804 μs | 6.0721 μs |  5.3828 μs |
+| StatePulse_BusrtSafeDispatch                   | 376.511 μs | 7.4720 μs | 14.3960 μs |
+| StatePulse_FireYieldDispatch                   |   3.353 μs | 0.0669 μs |  0.1702 μs |
+| StatePulse_FireYield_SequentialEffectsDispatch |   3.235 μs | 0.0367 μs |  0.0307 μs |
+| StatePulse_AwaitedDispatch                     |   3.292 μs | 0.0470 μs |  0.0417 μs |
 
 StatePulse delivers strong performance given its feature set, but it’s not designed for tight, high‑frequency loops. Long‑term performance improvements are planned, as there are several areas with optimization potential. For now, the priority remains system stability, configuration robustness, and feature completeness.
 
@@ -240,7 +248,7 @@ internal class ProfileCardDefineResultReducer : IReducer<ProfileCardState, Profi
 ### **Define StateFeature**:
 
 ```csharp
-public record ProfileCardState : IStateFeature
+public sealed record ProfileCardState : IStateFeature
 {
     public string? ProfileName { get; set; }
     public string? ProfilePicture { get; set; }
