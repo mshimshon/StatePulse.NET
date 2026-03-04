@@ -50,7 +50,7 @@ public class StatePulseInitTests : TestBase
         var state = () => sp.StateOf<ProfileCardState>(() => this, OnUpdate);
         // Dispatch action that changes state
         var action = new ProfileCardDefineAction();
-        await dispatcher.Prepare(() => action).Await().DispatchAsync();
+        await dispatcher.Prepared(action).Await().DispatchAsync();
 
         Assert.Equal("Maksim Shimshon", state().ProfileName);
     }

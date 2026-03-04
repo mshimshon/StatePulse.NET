@@ -23,10 +23,8 @@ public static class ServiceRegisterExt
             configure(ConfigureOptions);
 
         bool isSingleThreadModel = ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.SingleThreadFast || ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.BlazorWebAssemblyFast;
-        if (isSingleThreadModel)
-            services.AddTransient<IStatePulse, PulseLazyStateWebAssembly>();
-        else
-            services.AddTransient<IStatePulse, PulseLazyStateBlazorServer>();
+        services.AddTransient<IStatePulse, PulseLazyStateBase>();
+
 
         services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         services.AddSingleton<IStatePulseRegistry>(Registry);

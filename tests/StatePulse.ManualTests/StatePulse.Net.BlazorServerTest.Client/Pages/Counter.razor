@@ -26,3 +26,16 @@
 {
     <p>@t.Value.FullName</p>
 }
+
+<button class="btn btn-primary" @onclick=ForceGC>Force GC</button>
+<button class="btn btn-primary" @onclick=MassTest>@(_leakTestCTS != default ? "Stop Leak Test" : "Start Leak Test")</button>
+<button class="btn btn-primary" @onclick=StateHasChanged>Refresh Render</button>
+
+@if (Visible)
+{
+    <ComponentTest />
+}
+@foreach (var item in _lastChecks)
+{
+    <span>@item.ToString()</span>
+}

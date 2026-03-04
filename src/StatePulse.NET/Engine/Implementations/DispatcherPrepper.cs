@@ -87,10 +87,8 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 Version = _currentVersion,
                 Tracker = () => _tracker
             };
-            bool preCancel = _tracker.CreateExecutingAction(nextChain.Id, this, nextChain.Version);
+            _tracker.CreateExecutingAction(nextChain.Id, this, nextChain.Version);
             nextChain.TrackedEntry = _tracker.CreateEntryPoint(nextChain.Id, this);
-            if (!preCancel)
-                return;
         }
 
 
