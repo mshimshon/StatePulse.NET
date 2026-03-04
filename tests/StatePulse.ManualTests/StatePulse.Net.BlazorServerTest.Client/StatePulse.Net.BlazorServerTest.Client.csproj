@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.1" />
-    <PackageReference Include="StatePulse.Net" Version="2.0.0" />
+    <PackageReference Include="StatePulse.Net" Version="2.0.113" />
   </ItemGroup>
 
   <ItemGroup>
