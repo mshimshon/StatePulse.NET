@@ -55,6 +55,21 @@ public class StatePulseInitTests : TestBase
         Assert.Equal("Maksim Shimshon", state().ProfileName);
     }
 
+
+    [Fact]
+    public async Task Should_Successful_Reducer_MultipleStates()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        // Dispatch action that changes state
+        var state1 = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        var state2 = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuSecondState>>();
+        await dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
+
+        Assert.NotEmpty(state1.State.NavigationItems ?? new());
+        Assert.True(state2.State.IsSuccessful);
+    }
+
+
     [Fact]
     public async Task DispatchingEffectShouldCorrectlyTriggerActions()
     {
@@ -64,6 +79,40 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
 
         Assert.NotEmpty(stateAccessor.State.NavigationItems ?? new());
+    }
+
+    [Fact]
+    public async Task DispatchChangingDiffPropsOnSameStateShouldNotHaveConcurrentIssues()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        bool pass = true;
+        for (int i = 0; i < 100; i++)
+        {
+            var t1 = dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
+            var t2 = dispatcher.Prepare<MainMenuLoaderStartAction>().Await().DispatchAsync();
+            await Task.WhenAll([t1, t2]);
+            if (stateAccessor.State.IsOpened != true || stateAccessor.State.NavigationItems == default || stateAccessor.State.NavigationItems.Count <= 0)
+            {
+                pass = false;
+                break;
+            }
+            await dispatcher.Prepare<MainMenuLoaderStartAction>().Await().DispatchAsync();
+        }
+        Assert.True(pass);
+    }
+
+    [Fact]
+    public async Task DispatchCancelTokenShouldWork()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
+        bool pass = true;
+        var ct = new CancellationTokenSource();
+        var t1 = dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync(false, ct.Token);
+        ct.Cancel();
+        await t1;
+        Assert.True(stateAccessor.State.NavigationItems == default);
     }
 
     [Theory]

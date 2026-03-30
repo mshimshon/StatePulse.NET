@@ -14,8 +14,12 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
     private readonly DispatchTrackingIdentity? _chainKey;
     private readonly IDispatchTracker<TActionChain> _tracker;
     private long _currentVersion = -1;
-    public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey)
+    private CancellationToken _cancelToken;
+    private static object _reducerLock = new();
+    public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey, CancellationToken ct = default, bool sync = false)
     {
+        _forceSyncronous = sync;
+        _cancelToken = ct;
         _action = action!;
         _serviceProvider = serviceProvider;
         _statePulseRegistry = _serviceProvider.GetRequiredService<IStatePulseRegistry>();
@@ -26,8 +30,10 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
     public TAction ActionInstance => _action;
 
-    public async Task DispatchFastAsync()
+    public async Task DispatchFastAsync(CancellationToken ct)
     {
+        if (ct != default)
+            _cancelToken = ct;
         if (_chainKey == default)
             if (_forceSyncronous)
                 await ProcessDispatch(false, Guid.Empty);
@@ -45,8 +51,10 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
 
     }
 
-    public async Task<Guid> DispatchSafeAsync()
+    public async Task<Guid> DispatchSafeAsync(CancellationToken ct)
     {
+        if (ct != default)
+            _cancelToken = ct;
         if (_chainKey == default)
         {
             Guid nextKey = Guid.NewGuid();
@@ -108,7 +116,13 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
             var dispatcherService = _serviceProvider.GetRequiredService<IDispatchFactory>();
             var dispatchElement = dispatcherService.CreateDispatch();
             if (nextChain != default)
-                await dispatchElement.Handler.MaintainChainKey(nextChain);
+                dispatchElement.Handler.MaintainChainKey(nextChain);
+
+            if (_cancelToken != default)
+                dispatchElement.Handler.AssignToken(_cancelToken);
+            if (_forceSyncronous)
+                dispatchElement.Handler.NextAwaited();
+
             if (_dispatchOrdering == DispatchOrdering.ReducersFirst)
                 await RunReducer(nextChain);
 
@@ -122,9 +136,6 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         {
             foreach (var item in disaptchMiddlewares)
                 _ = item.OnDispatchFailure(ex, _action);
-
-
-
             if (_forceSyncronous)
                 throw;
         }
@@ -140,12 +151,12 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         }
 
     }
-    public async Task<Guid> DispatchAsync(bool asSafe = false)
+    public async Task<Guid> DispatchAsync(bool asSafe = false, CancellationToken ct = default)
     {
 
         if ((_action is ISafeAction) || asSafe)
-            return await DispatchSafeAsync();
-        await DispatchFastAsync();
+            return await DispatchSafeAsync(ct);
+        await DispatchFastAsync(ct);
         return Guid.Empty;
     }
 
@@ -243,15 +254,16 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
     {
         var actionType = typeof(TAction);
         var middlewares = _serviceProvider.GetServices<IReducerMiddleware>();
-        foreach (var stateType in _statePulseRegistry.KnownStates)
+
+        foreach (var reducerDescriptor in _statePulseRegistry.GetReducersByAction(actionType))
         {
 
             if (IsChainCancelled(nextChain))
                 return;
-            var reducerType = typeof(IReducer<,>).MakeGenericType(stateType, actionType);
-            var stateAccessorType = _statePulseRegistry.KnownStateToAccessors[stateType];
+
+            var stateAccessorType = _statePulseRegistry.KnownStateToAccessors[reducerDescriptor.StateType];
             var stateService = () => _serviceProvider.GetRequiredService(stateAccessorType);
-            var reducerService = _serviceProvider.GetService(reducerType);
+            var reducerService = _serviceProvider.GetService(reducerDescriptor.ServiceType);
             // Trigger Reducer
             if (reducerService != default)
             {
@@ -260,9 +272,9 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
                 var middlewareTasks = RunMiddlewareReducer(middlewares, p => p.BeforeReducing(currentState, _action));
                 if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.Await)
                     await middlewareTasks;
-
-                var newState = _statePulseRegistry.KnownReducersReduceMethod[reducerType](reducerService,
-                    new object[] {
+                object? newState = default;
+                newState = _statePulseRegistry.KnownReducersReduceMethod[reducerDescriptor.ServiceType](reducerService,
+         new object[] {
                         currentState,
                         _action }!)!;
 
@@ -328,7 +340,7 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         return Task.WhenAll(middlewaresTasks);
     }
     private bool IsChainCancelled(DispatchTrackingIdentity? nextChain = default)
-        =>
+        => _cancelToken.IsCancellationRequested ||
         (nextChain != default && (nextChain.TrackedEntry.IsCancelled || nextChain.Tracker().IsCancelled(nextChain.Id, nextChain.Version))) ||
         (_chainKey != default && (_chainKey.TrackedEntry.IsCancelled || _chainKey.Tracker().IsCancelled(_chainKey.Id, _chainKey.Version)));
 }

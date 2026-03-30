@@ -2,6 +2,6 @@
 
 namespace StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 
-public record MainMenuOpenAction : IAction
+internal sealed record MainMenuStateResetAction : IAction
 {
 }

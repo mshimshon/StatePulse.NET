@@ -17,6 +17,18 @@ internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPre
         return this;
     }
 
+    /// <summary>
+    /// Forces this dispatch to run in fire‑and‑yield mode when called from an effect. 
+    /// Effects should await their own follow‑up dispatches, and this flag provides 
+    /// a built‑in safeguard against side-effect that should never be fully awaited.
+    /// </summary>
+
+    public IDispatcherPrepper<TAction> DoNotAwait()
+    {
+        _forceSyncronous = false;
+        return this;
+    }
+
     public IDispatcherPrepper<TAction> EffectsFirst()
     {
         _dispatchOrdering = DispatchOrdering.EffectsFirst;

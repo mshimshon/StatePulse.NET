@@ -1,4 +1,6 @@
-﻿namespace StatePulse.Net;
+﻿using StatePulse.Net.Models;
+
+namespace StatePulse.Net;
 
 public interface IStatePulseRegistry
 {
@@ -22,5 +24,8 @@ public interface IStatePulseRegistry
     void RegisterReducer(Type reducerType, Type interfaceType);
     void RegisterAction(Type actionType);
     void RegisterEffectValidator(Type actionValType, Type interfaceType);
+    List<ReducerDescriptor> GetReducersByAction(Type actionType);
+    List<ReducerDescriptor> GetReducersByState(Type stateType);
+
 
 }
