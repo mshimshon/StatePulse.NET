@@ -40,9 +40,9 @@ public class Tests
     }
 
     [Benchmark]
-    public void StatePulse_Dispatch()
+    public async Task StatePulse_Dispatch()
     {
-        _ = _pulseDispatcher.Prepare<IncreaseCounterAction>().Await().DispatchAsync();
+        await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync();
     }
 
     [Benchmark]
@@ -64,6 +64,24 @@ public class Tests
         for (int i = 0; i < 100; i++)
             await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync(true);
     }
+
+
+
+    //[Benchmark]
+    //public async Task Fluxor_Dispatch()
+    //{
+    //    await Task.Run(() => _fluxDispatcher.Dispatch(new IncreaseCounterAction()));
+
+    //}
+
+    //[Benchmark]
+    //public async Task Fluxor_BusrtDispatch()
+    //{
+    //    for (int i = 0; i < 100; i++)
+    //        await Task.Run(() => _fluxDispatcher.Dispatch(new IncreaseCounterAction()));
+    //}
+
+
 
 
 

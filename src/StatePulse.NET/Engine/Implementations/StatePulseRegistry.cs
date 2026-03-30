@@ -24,6 +24,7 @@ internal class StatePulseRegistry : IStatePulseRegistry
     private readonly Dictionary<Type, Func<object, object?>> _knownReducersTaskResult = new();
     private readonly List<Type> _knownActions = new();
     private readonly Dictionary<Type, Type> _knownActionValidators = new();
+    public int DispatchMiddlewareCount { get; internal set; }
 
     public IReadOnlyList<Type> KnownStates => _knownStates;
     public IReadOnlyDictionary<Type, Type> KnownEffects => _knownEffects;

@@ -134,7 +134,7 @@ public class StatePulseInitTests : TestBase
     {
         var scopedServices = ServiceProvider.CreateScope().ServiceProvider;
         var stateAccessor = scopedServices.GetRequiredService<IStateAccessor<ProfileCardState>>();
-        var tracker = scopedServices.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
+        var tracker = scopedServices.GetRequiredService<IDispatchTracker>();
 
         // Dispatch action that changes state
         int changes = 0;
@@ -185,7 +185,7 @@ public class StatePulseInitTests : TestBase
     public async Task DispatchingBurstShouldTriggerInconsistentResults()
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
-        var tracker = ServiceProvider.GetRequiredService<IDispatchTracker<ProfileCardDefineAction>>();
+        var tracker = ServiceProvider.GetRequiredService<IDispatchTracker>();
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<ProfileCardState>>();
         // Dispatch action that changes state
         int changes = 0;

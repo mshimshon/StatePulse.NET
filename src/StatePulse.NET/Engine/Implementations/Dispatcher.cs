@@ -51,10 +51,11 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
     private IDispatcherPrepper<TAction> CreatePrepper<TAction>(TAction Instance) where TAction : IAction
     {
         var passKeyChain = _chainKey?.EntryType ?? typeof(TAction);
-        var dispatcherPrepperType = typeof(DispatcherPrepper<,>).MakeGenericType(typeof(TAction), passKeyChain);
-        var instance = Activator.CreateInstance(dispatcherPrepperType, Instance, _serviceProvider, _chainKey, _cancelToken, forcedSync)
-            ?? throw new InvalidOperationException($"Cannot create instance of {typeof(TAction).Name} with given constructor parameters.");
-        return (instance as IDispatcherPrepper<TAction>)!;
+        var instance = new DispatcherPrepper<TAction>(Instance, _serviceProvider, _chainKey, _cancelToken, forcedSync);
+        //var dispatcherPrepperType = typeof(DispatcherPrepper<,>).MakeGenericType(typeof(TAction), passKeyChain);
+        //var instance = Activator.CreateInstance(dispatcherPrepperType, Instance, _serviceProvider, _chainKey, _cancelToken, forcedSync)
+        //?? throw new InvalidOperationException($"Cannot create instance of {typeof(TAction).Name} with given constructor parameters.");
+        return instance;
 
     }
 }

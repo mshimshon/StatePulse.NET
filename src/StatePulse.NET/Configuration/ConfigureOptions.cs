@@ -16,14 +16,10 @@ public class ConfigureOptions
     public Type[] AutoRegisterTypes { get; set; } = new Type[] { };
 
     private long _versionTicker;
-    private readonly static Object _lock = new();
     public long GetNextVersion()
     {
-        lock (_lock)
-        {
-            var next = Interlocked.Increment(ref _versionTicker);
-            return next;
-        }
+        var next = Interlocked.Increment(ref _versionTicker);
+        return next;
     }
 
 }

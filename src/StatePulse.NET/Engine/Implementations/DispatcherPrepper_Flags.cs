@@ -1,9 +1,8 @@
 ﻿using StatePulse.Net.Configuration;
 namespace StatePulse.Net.Engine.Implementations;
 
-internal partial class DispatcherPrepper<TAction, TActionChain> : IDispatcherPrepper<TAction>
+internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
     where TAction : IAction
-    where TActionChain : IAction
 {
 
     private DispatchEffectBehavior _dispatchEffectBehavior = ServiceRegisterExt.ConfigureOptions.DispatchEffectBehavior;

@@ -3,4 +3,5 @@
 public interface IDispatchEntry
 {
     bool IsCancelled { get; }
+    void Cancel();
 }
