@@ -6,6 +6,7 @@ using StatePulse.NET.Tests.TestCases.Pulsars.Counter.States;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects.Validators;
+using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Middlewares;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Reducers;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
@@ -53,6 +54,8 @@ public abstract class TestBase : IDisposable
         ServiceCollection.AddStatePulseService<MainMenuState>();
 
         ServiceCollection.AddStatePulseService<CounterState>();
+        ServiceCollection.AddStatePulseService<MainMenuLoaderStartDispatchMiddleware>();
+        ServiceCollection.AddStatePulseService<ThirdDispatchMiddleware>();
         // Register your services
         ServiceProvider = ServiceCollection.BuildServiceProvider();
     }
