@@ -317,12 +317,12 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
                 // Regardless of settings ensure BeforeReducing is finished before calling after reducing.
                 if (hasMiddlewares)
                 {
-                    if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior != Configuration.MiddlewareTaskBehavior.Await)
+                    if (ServiceRegisterExt.ConfigureOptions.MiddlewareTaskBehavior == Configuration.MiddlewareTaskBehavior.DoNotAwait)
                         _ = Task.Run(async () =>
                         {
                             if (middlewareTasks != default && !middlewareTasks.IsCompletedSuccessfully)
                                 await middlewareTasks;
-                            await RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
+                            _ = RunMiddlewareReducer(middlewares, p => p.AfterReducing(newState, _action));
                         });
                     else
                     {

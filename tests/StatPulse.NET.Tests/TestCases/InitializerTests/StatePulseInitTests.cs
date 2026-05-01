@@ -57,7 +57,7 @@ public class StatePulseInitTests : TestBase
 
 
     [Fact]
-    public async Task Should_Successful_Reducer_MultipleStates()
+    public async Task Should_Successful_SameActionReducer_MultipleStates()
     {
         var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
         // Dispatch action that changes state
@@ -65,7 +65,7 @@ public class StatePulseInitTests : TestBase
         var state2 = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuSecondState>>();
         await dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync();
 
-        Assert.NotEmpty(state1.State.NavigationItems ?? new());
+        Assert.True(state1.State.IsOpened);
         Assert.True(state2.State.IsSuccessful);
     }
 

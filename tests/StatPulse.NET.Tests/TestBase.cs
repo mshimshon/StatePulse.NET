@@ -6,6 +6,7 @@ using StatePulse.NET.Tests.TestCases.Pulsars.Counter.States;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Actions;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Effects.Validators;
+using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Middlewares;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Reducers;
 using StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Store;
 using StatePulse.NET.Tests.TestCases.Pulsars.Profile.Actions;
@@ -23,7 +24,7 @@ public abstract class TestBase : IDisposable
     protected TestBase()
     {
         ServiceCollection = new ServiceCollection();
-        // TOOD: Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
+        // Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
         // service exceptions du to thread safe on bulk testing.
         ServiceCollection.AddStatePulseServices();
         ServiceCollection.AddStatePulseService<MainMenuStateResetAction>();
@@ -55,6 +56,9 @@ public abstract class TestBase : IDisposable
         ServiceCollection.AddStatePulseService<UpdateCounterReducer>();
         ServiceCollection.AddStatePulseService<ProfileCardState>();
         ServiceCollection.AddStatePulseService<MainMenuState>();
+
+        ServiceCollection.AddStatePulseService<MainMenuLoaderStartDispatchMiddleware>();
+        ServiceCollection.AddStatePulseService<SecondDispatchMiddleware>();
 
         ServiceCollection.AddStatePulseService<CounterState>();
         // Register your services
