@@ -178,10 +178,14 @@ public static class ServiceRegisterExt
     public static bool IsImplementationRegistered(this IServiceCollection services, Type implementationType, Type ifaceType)
     {
         return services.Any(s =>
-            s.ImplementationType == implementationType &&
-            s.ServiceType.IsGenericType &&
-            s.ServiceType.GetGenericTypeDefinition() == ifaceType ||
-            !s.ServiceType.IsGenericType && s.ServiceType == ifaceType
+        {
+            bool isSameImplementation = s.ImplementationType == implementationType;
+            bool isTheServiceSameAsInterface =
+                s.ServiceType.IsGenericType && s.ServiceType.GetGenericTypeDefinition() == ifaceType ||
+                !s.ServiceType.IsGenericType && s.ServiceType == ifaceType;
+
+            return isSameImplementation && isTheServiceSameAsInterface;
+        }
         );
     }
     public static bool IsEffectValidatorImplementationRegistered(this IServiceCollection services, Type implementationType)

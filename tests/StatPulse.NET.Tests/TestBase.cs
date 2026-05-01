@@ -61,6 +61,8 @@ public abstract class TestBase : IDisposable
         ServiceCollection.AddStatePulseService<SecondDispatchMiddleware>();
 
         ServiceCollection.AddStatePulseService<CounterState>();
+        ServiceCollection.AddStatePulseService<MainMenuLoaderStartDispatchMiddleware>();
+        ServiceCollection.AddStatePulseService<ThirdDispatchMiddleware>();
         // Register your services
         ServiceProvider = ServiceCollection.BuildServiceProvider();
     }
