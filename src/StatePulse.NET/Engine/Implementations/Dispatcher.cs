@@ -5,14 +5,14 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
     private readonly IServiceProvider _serviceProvider;
     private DispatchTrackingIdentity? _chainKey;
     private CancellationToken _cancelToken = default;
-    private bool forcedSync = false;
+    private bool _forcedSync = false;
+    private bool _safe = false;
     public CancellationToken CancelToken => _cancelToken;
-
     public bool IsCancellationRequested => IsChainKeyCancelled() || CancelToken.IsCancellationRequested;
     private bool IsChainKeyCancelled()
     {
         if (_chainKey == default) return false;
-        return _chainKey.Tracker().IsCancelled(_chainKey.Id, _chainKey.Version);
+        return _chainKey.Tracker().IsCancelled(_chainKey.Pipeline.Id, _chainKey.Version);
     }
     public Dispatcher(IServiceProvider serviceProvider)
     {
@@ -30,9 +30,12 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
     }
     public void NextAwaited()
     {
-        forcedSync = true;
+        _forcedSync = true;
     }
-
+    public void NextSafe()
+    {
+        _safe = true;
+    }
     public IDispatcherPrepper<TAction> Prepare<TAction>(params object[] constructor) where TAction : IAction
     {
         var instanceAction = Activator.CreateInstance(typeof(TAction), constructor)
@@ -51,7 +54,7 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
     private IDispatcherPrepper<TAction> CreatePrepper<TAction>(TAction Instance) where TAction : IAction
     {
         var passKeyChain = _chainKey?.EntryType ?? typeof(TAction);
-        var instance = new DispatcherPrepper<TAction>(Instance, _serviceProvider, _chainKey, _cancelToken, forcedSync);
+        var instance = new DispatcherPrepper<TAction>(Instance, _serviceProvider, _chainKey, _cancelToken, _forcedSync, _safe);
         //var dispatcherPrepperType = typeof(DispatcherPrepper<,>).MakeGenericType(typeof(TAction), passKeyChain);
         //var instance = Activator.CreateInstance(dispatcherPrepperType, Instance, _serviceProvider, _chainKey, _cancelToken, forcedSync)
         //?? throw new InvalidOperationException($"Cannot create instance of {typeof(TAction).Name} with given constructor parameters.");

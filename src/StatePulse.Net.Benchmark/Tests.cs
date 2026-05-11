@@ -48,7 +48,7 @@ public class Tests
     [Benchmark]
     public async Task StatePulse_SafeDispatch()
     {
-        await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync(true);
+        await _pulseDispatcher.Prepare<IncreaseCounterAction>().AsSafe().DispatchAsync();
     }
 
     [Benchmark]
@@ -62,7 +62,7 @@ public class Tests
     public async Task StatePulse_BusrtSafeDispatch()
     {
         for (int i = 0; i < 100; i++)
-            await _pulseDispatcher.Prepare<IncreaseCounterAction>().DispatchAsync(true);
+            await _pulseDispatcher.Prepare<IncreaseCounterAction>().AsSafe().DispatchAsync();
     }
 
 

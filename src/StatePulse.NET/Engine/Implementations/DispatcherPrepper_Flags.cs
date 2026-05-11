@@ -9,7 +9,16 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
     private DispatchOrdering _dispatchOrdering = ServiceRegisterExt.ConfigureOptions.DispatchOrderBehavior;
     private bool _forceSyncronous;
 
-
+    public IDispatcherPrepper<TAction> AsSafe()
+    {
+        _safe = true;
+        return this;
+    }
+    public IDispatcherPrepper<TAction> AsUnSafe()
+    {
+        _safe = false;
+        return this;
+    }
     public IDispatcherPrepper<TAction> Await()
     {
         _forceSyncronous = true;

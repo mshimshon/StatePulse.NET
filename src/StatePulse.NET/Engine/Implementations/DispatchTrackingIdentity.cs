@@ -2,7 +2,7 @@
 
 public record DispatchTrackingIdentity
 {
-    public Guid Id { get; init; }
+    public IDispatchPipeline Pipeline { get; init; } = default!;
     public Type EntryType { get; init; } = default!;
     public IDispatchEntry TrackedEntry { get; set; } = default!;
     public long Version { get; init; }

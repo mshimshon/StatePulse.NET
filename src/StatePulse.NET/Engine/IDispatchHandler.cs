@@ -7,5 +7,5 @@ public interface IDispatchHandler
     void MaintainChainKey(DispatchTrackingIdentity chainKey);
     void AssignToken(CancellationToken ct);
     void NextAwaited();
-
+    void NextSafe();
 }

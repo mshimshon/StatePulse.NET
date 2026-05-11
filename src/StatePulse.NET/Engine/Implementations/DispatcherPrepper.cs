@@ -14,10 +14,13 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
     private readonly IDispatchTracker _tracker;
     private long _currentVersion = -1;
     private CancellationToken _cancelToken;
+    private bool _safe;
     private static object _reducerLock = new();
-    public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey, CancellationToken ct = default, bool sync = false)
+
+    public DispatcherPrepper(TAction action, IServiceProvider serviceProvider, DispatchTrackingIdentity? chainKey, CancellationToken ct = default, bool sync = false, bool? safe = null)
     {
         _forceSyncronous = sync;
+        _safe = safe ?? (_action is ISafeAction);
         _cancelToken = ct;
         _action = action!;
         _serviceProvider = serviceProvider;
@@ -73,7 +76,7 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
                     _ = ProcessDispatch(false, Guid.Empty);
         }
 
-        return _chainKey?.Id ?? Guid.Empty;
+        return _chainKey?.Pipeline.Id ?? Guid.Empty;
     }
 
     private static MethodInfo? _cachedEffectMethod;
@@ -89,13 +92,13 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
             _currentVersion = ServiceRegisterExt.ConfigureOptions.GetNextVersion();
             nextChain = new DispatchTrackingIdentity()
             {
-                Id = nextId,
+                Pipeline = new DispatchPipeline(nextId),
                 EntryType = typeof(TAction),
                 Version = _currentVersion,
                 Tracker = () => _tracker
             };
-            _tracker.CreateExecutingAction(nextChain.Id, this, nextChain.Version);
-            nextChain.TrackedEntry = _tracker.CreateEntryPoint(nextChain.Id, this);
+            _tracker.CreateExecutingAction(nextChain.Pipeline.Id, this, nextChain.Version);
+            nextChain.TrackedEntry = _tracker.CreateEntryPoint(nextChain.Pipeline.Id, this);
         }
 
 
@@ -127,6 +130,9 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
             if (_forceSyncronous)
                 dispatchElement.Handler.NextAwaited();
 
+            if (_safe)
+                dispatchElement.Handler.NextSafe();
+
             if (_dispatchOrdering == DispatchOrdering.ReducersFirst)
                 await RunReducer(nextChain);
 
@@ -157,13 +163,12 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
         }
 
     }
-    public async Task<Guid> DispatchAsync(bool asSafe = false, CancellationToken ct = default)
+    public async Task DispatchAsync(CancellationToken ct = default)
     {
-
-        if ((_action is ISafeAction) || asSafe)
-            return await DispatchSafeAsync(ct);
-        await DispatchFastAsync(ct);
-        return Guid.Empty;
+        if (_safe)
+            await DispatchSafeAsync(ct);
+        else
+            await DispatchFastAsync(ct);
     }
 
     private async Task RunEffects(DispatchTrackingIdentity? nextChain, DispatchFactoryElement dispatcherService)
@@ -310,7 +315,7 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
                 Type originType = typeof(TAction);
                 if (nextChain != default)
                     originType = nextChain.EntryType;
-                var isAccepted = _statePulseRegistry.KnownStateAccessorsStateUpdater[stateAccessorType](stateService(), newState, originType, usedVersion, nextChain?.Id ?? Guid.Empty);
+                var isAccepted = _statePulseRegistry.KnownStateAccessorsStateUpdater[stateAccessorType](stateService(), newState, originType, usedVersion, nextChain?.Pipeline.Id ?? Guid.Empty);
                 var stateVersioning = (StateVersioning)_statePulseRegistry.KnownStateAccessorsVersionGetter[stateAccessorType].Invoke(stateService())!;
 
                 if (!isAccepted) return;
@@ -364,7 +369,7 @@ internal partial class DispatcherPrepper<TAction> : IDispatcherPrepper<TAction>
     }
     private bool IsChainCancelled(DispatchTrackingIdentity? nextChain = default)
         => _cancelToken.IsCancellationRequested ||
-        (nextChain != default && (nextChain.TrackedEntry.IsCancelled || nextChain.Tracker().IsCancelled(nextChain.Id, nextChain.Version))) ||
-        (_chainKey != default && (_chainKey.TrackedEntry.IsCancelled || _chainKey.Tracker().IsCancelled(_chainKey.Id, _chainKey.Version)));
+        (nextChain != default && (nextChain.TrackedEntry.IsCancelled || nextChain.Tracker().IsCancelled(nextChain.Pipeline.Id, nextChain.Version))) ||
+        (_chainKey != default && (_chainKey.TrackedEntry.IsCancelled || _chainKey.Tracker().IsCancelled(_chainKey.Pipeline.Id, _chainKey.Version)));
 }
 

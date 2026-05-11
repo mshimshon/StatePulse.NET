@@ -109,7 +109,7 @@ public class StatePulseInitTests : TestBase
         var stateAccessor = ServiceProvider.GetRequiredService<IStateAccessor<MainMenuState>>();
         bool pass = true;
         var ct = new CancellationTokenSource();
-        var t1 = dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync(false, ct.Token);
+        var t1 = dispatcher.Prepare<MainMenuOpenAction>().Await().DispatchAsync(ct.Token);
         ct.Cancel();
         await t1;
         Assert.True(stateAccessor.State.NavigationItems == default);
@@ -165,7 +165,8 @@ public class StatePulseInitTests : TestBase
             _ = dispatcher.Prepare<ProfileCardDefineAction>()
                 .With(p => p.TestData, winingValue)
                 .With(p => p.Delay, timing[i])
-                .DispatchAsync(true);
+                .AsSafe()
+                .DispatchAsync();
             possibleRaceConditions.Add(winingValue);
         }
         await Task.Delay(timing.Sum());
