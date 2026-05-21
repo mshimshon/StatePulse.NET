@@ -25,7 +25,7 @@ public static class ServiceRegisterExt
         bool isSingleThreadModel = ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.SingleThreadFast || ConfigureOptions.PulseTrackingPerformance == PulseTrackingModel.BlazorWebAssemblyFast;
         services.AddTransient<IStatePulse, PulseLazyStateBase>();
 
-
+        services.AddScoped<IDispatchTracker, DispatchTracker>();
         services.AddScoped<IPulseGlobalTracker, PulseGlobalTracker>();
         services.AddSingleton<IStatePulseRegistry>(Registry);
         services.AutoRegisterTypes(ConfigureOptions.AutoRegisterTypes);
@@ -99,12 +99,7 @@ public static class ServiceRegisterExt
     private static IServiceCollection AddStatePulseAction(this IServiceCollection services, Type implementation)
 
     {
-        // Add Action Based Singleton Dispatch Tracker.
-        var dispatchTrackerIface = typeof(IDispatchTracker<>).MakeGenericType(implementation);
-        var dispatchTracker = typeof(DispatchTracker<>).MakeGenericType(implementation);
-        if (services.IsDispatchTrackerRegistered(dispatchTracker)) return services;
         Registry.RegisterAction(implementation);
-        services.AddScoped(dispatchTrackerIface, dispatchTracker);
 
         return services;
     }
@@ -154,6 +149,9 @@ public static class ServiceRegisterExt
             (iface == effectMiddlewareType || iface == reducerMiddlewareType || iface == dispatchMiddlewareType) &&
             !services.IsImplementationRegistered(type, iface);
 
+        if (iface == dispatchMiddlewareType)
+            Registry.DispatchMiddlewareCount++;
+
         if (isMiddlewareType)
             services.AddTransient(iface, type);
         else if (!iface.IsGenericType && (iface == actionType || iface == actionSafeType))
@@ -199,25 +197,7 @@ public static class ServiceRegisterExt
         );
     }
 
-    public static bool IsDispatchTrackerRegistered(this IServiceCollection services, Type implementationType)
-    {
-        if (!implementationType.IsGenericType) return false;
 
-        var interfaces = implementationType.GetInterfaces()
-            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDispatchTracker<>));
-
-        foreach (var iface in interfaces)
-        {
-            if (services.Any(s =>
-                s.ServiceType == iface &&
-                s.ImplementationType == implementationType))
-            {
-                return true; // Found match
-            }
-        }
-
-        return false;
-    }
 
     public static bool IsStateAccessorRegistered(this IServiceCollection services, Type implementationType)
     {

@@ -24,11 +24,15 @@ public abstract class TestBase : IDisposable
     protected TestBase()
     {
         ServiceCollection = new ServiceCollection();
-        // TOOD: Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
+        // Remove Scan Add Manual for Tests which is best policy would most lekily avoid inconsistent
         // service exceptions du to thread safe on bulk testing.
         ServiceCollection.AddStatePulseServices();
+        ServiceCollection.AddStatePulseService<MainMenuStateResetAction>();
+        ServiceCollection.AddStatePulseService<MainMenuStateResetReducer>();
+        ServiceCollection.AddStatePulseService<SuccessfulReducer>();
         ServiceCollection.AddStatePulseService<MainMenuLoaderStartAction>();
         ServiceCollection.AddStatePulseService<MainMenuLoaderStopAction>();
+        ServiceCollection.AddStatePulseService<MainMenuSecondState>();
         ServiceCollection.AddStatePulseService<MainMenuLoadNavigationItemsAction>();
         ServiceCollection.AddStatePulseService<MainMenuLoadNavigationItemsResultAction>();
         ServiceCollection.AddStatePulseService<MainMenuOpenAction>();
@@ -52,6 +56,9 @@ public abstract class TestBase : IDisposable
         ServiceCollection.AddStatePulseService<UpdateCounterReducer>();
         ServiceCollection.AddStatePulseService<ProfileCardState>();
         ServiceCollection.AddStatePulseService<MainMenuState>();
+
+        ServiceCollection.AddStatePulseService<MainMenuLoaderStartDispatchMiddleware>();
+        ServiceCollection.AddStatePulseService<SecondDispatchMiddleware>();
 
         ServiceCollection.AddStatePulseService<CounterState>();
         ServiceCollection.AddStatePulseService<MainMenuLoaderStartDispatchMiddleware>();

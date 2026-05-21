@@ -61,15 +61,12 @@ Runs Before and After the reducer, enabling patterns such as event dispatch on s
 
 
 ## Benchmark
-| Method                                         | Mean       | Error     | StdDev     |
-|----------------------------------------------- |-----------:|----------:|-----------:|
-| StatePulse_Dispatch                            |   2.463 μs | 0.0161 μs |  0.0134 μs |
-| StatePulse_SafeDispatch                        |   3.838 μs | 0.0712 μs |  0.1501 μs |
-| StatePulse_BusrtDispatch                       | 332.804 μs | 6.0721 μs |  5.3828 μs |
-| StatePulse_BusrtSafeDispatch                   | 376.511 μs | 7.4720 μs | 14.3960 μs |
-| StatePulse_FireYieldDispatch                   |   3.353 μs | 0.0669 μs |  0.1702 μs |
-| StatePulse_FireYield_SequentialEffectsDispatch |   3.235 μs | 0.0367 μs |  0.0307 μs |
-| StatePulse_AwaitedDispatch                     |   3.292 μs | 0.0470 μs |  0.0417 μs |
+| Method                       | Mean       | Error     | StdDev     | Median     |
+|----------------------------- |-----------:|----------:|-----------:|-----------:|
+| StatePulse_Dispatch          |   2.240 μs | 0.0405 μs |  0.0720 μs |   2.208 μs |
+| StatePulse_SafeDispatch      |   2.802 μs | 0.0556 μs |  0.1512 μs |   2.744 μs |
+| StatePulse_BusrtDispatch     | 232.678 μs | 5.4732 μs | 15.8789 μs | 227.091 μs |
+| StatePulse_BusrtSafeDispatch | 284.785 μs | 8.3677 μs | 24.1427 μs | 276.808 μs |
 
 StatePulse delivers strong performance given its feature set, but it’s not designed for tight, high‑frequency loops. Long‑term performance improvements are planned, as there are several areas with optimization potential. For now, the priority remains system stability, configuration robustness, and feature completeness.
 

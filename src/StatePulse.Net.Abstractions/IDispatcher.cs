@@ -5,6 +5,8 @@ namespace StatePulse.Net;
 /// </summary>
 public interface IDispatcher
 {
+    CancellationToken CancelToken { get; }
+    bool IsCancellationRequested { get; }
     IDispatcherPrepper<TAction> Prepare<TAction>(params object[] constructor) where TAction : IAction;
 
     [Obsolete("Use Prepared instead.")]

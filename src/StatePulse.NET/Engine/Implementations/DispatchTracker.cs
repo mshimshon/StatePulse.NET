@@ -1,13 +1,13 @@
 ﻿using System.Collections.Concurrent;
 namespace StatePulse.Net.Engine.Implementations;
 
-internal class DispatchTracker<TAction> : IDispatchTracker<TAction> where TAction : IAction
+internal class DispatchTracker : IDispatchTracker
 {
-    private readonly ConcurrentDictionary<Guid, DispatchEntry<TAction>> _cancelTracker = new();
-    public EventHandler<DispatchEntry<TAction>>? OnCancel { get; set; }
-    public EventHandler<DispatchEntry<TAction>>? OnEntry { get; set; }
+    private readonly ConcurrentDictionary<Guid, DispatchEntry> _cancelTracker = new();
+    public EventHandler<DispatchEntry>? OnCancel { get; set; }
+    public EventHandler<DispatchEntry>? OnEntry { get; set; }
 
-    public ConcurrentDictionary<Guid, DispatchEntry<TAction>> CancellationTracker => _cancelTracker;
+    public ConcurrentDictionary<Guid, DispatchEntry> CancellationTracker => _cancelTracker;
 
     public long CurrentVersion => _currentVersion;
 
@@ -35,7 +35,7 @@ internal class DispatchTracker<TAction> : IDispatchTracker<TAction> where TActio
     public IDispatchEntry CreateEntryPoint(Guid id, object action)
     {
         CancelAll();
-        var item = new DispatchEntry<TAction>(id, (IDispatcherPrepper<TAction>)action);
+        var item = new DispatchEntry(id, action.GetType());
 
         _cancelTracker.TryAdd(id, item);
         OnEntry?.Invoke(this, item);

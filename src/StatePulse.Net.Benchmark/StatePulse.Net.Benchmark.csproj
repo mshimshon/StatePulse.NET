@@ -22,11 +22,14 @@
 	<ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="Fluxor" Version="6.9.0" />
-		<PackageReference Include="StatePulse.NET" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Fluxes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StatePulse.NET\StatePulse.NET.csproj" />
   </ItemGroup>
 
 </Project>

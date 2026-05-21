@@ -2,7 +2,7 @@
 
 namespace StatePulse.NET.Tests.TestCases.Pulsars.MainMenu.Middlewares;
 
-internal class MainMenuLoaderStartDispatchMiddleware : IDispatcherMiddleware, IEffectMiddleware, IReducerMiddleware
+internal class SecondDispatchMiddleware : IDispatcherMiddleware, IEffectMiddleware, IReducerMiddleware
 {
     public Task AfterDispatch(object action)
     {
@@ -18,7 +18,6 @@ internal class MainMenuLoaderStartDispatchMiddleware : IDispatcherMiddleware, IE
 
     public Task AfterReducing(object state, object action)
     {
-        throw new Exception();
         Console.WriteLine($"{action.GetType().Name} Executed.");
         return Task.CompletedTask;
     }

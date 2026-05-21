@@ -3,6 +3,7 @@
 namespace StatePulse.Net.Engine.Implementations;
 
 using StatePulse.Net;
+using StatePulse.Net.Models;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -16,11 +17,14 @@ internal class StatePulseRegistry : IStatePulseRegistry
 
     private readonly Dictionary<Type, Type> _knownEffects = new();
     private readonly Dictionary<Type, Type> _knownReducers = new();
+    private readonly Dictionary<Type, List<ReducerDescriptor>> _knownReducersByAction = new();
+    private readonly Dictionary<Type, List<ReducerDescriptor>> _knownReducersByState = new();
     private readonly Dictionary<Type, Type> _knownStateToReducers = new();
     private readonly Dictionary<Type, Func<object, object?[], object?>> _knownReducersReduceMethod = new();
     private readonly Dictionary<Type, Func<object, object?>> _knownReducersTaskResult = new();
     private readonly List<Type> _knownActions = new();
     private readonly Dictionary<Type, Type> _knownActionValidators = new();
+    public int DispatchMiddlewareCount { get; internal set; }
 
     public IReadOnlyList<Type> KnownStates => _knownStates;
     public IReadOnlyDictionary<Type, Type> KnownEffects => _knownEffects;
@@ -41,9 +45,31 @@ internal class StatePulseRegistry : IStatePulseRegistry
     public void RegisterEffect(Type effectType, Type interfaceType) => _knownEffects[effectType] = interfaceType;
     public void RegisterReducer(Type reducerType, Type interfaceType)
     {
+
+        var stateType = reducerType.GetGenericArguments()[0];
+        var actionType = reducerType.GetGenericArguments()[1];
+        var descriptor = new ReducerDescriptor()
+        {
+            ActionType = actionType,
+            ServiceType = reducerType,
+            StateType = stateType
+        };
+        if (_knownReducersByAction.ContainsKey(actionType) && !_knownReducersByAction[actionType].Contains(descriptor))
+            _knownReducersByAction[actionType].Add(descriptor);
+        else if (!_knownReducersByAction.ContainsKey(actionType))
+            _knownReducersByAction[actionType] = new() { descriptor };
+        else
+            return;
+
+        if (_knownReducersByState.ContainsKey(stateType) && !_knownReducersByState[stateType].Contains(descriptor))
+            _knownReducersByState[stateType].Add(descriptor);
+        else if (!_knownReducersByState.ContainsKey(stateType))
+            _knownReducersByState[stateType] = new() { descriptor };
+        else
+            return;
+
         var reduceMethodName = nameof(IReducer<IStateFeature, IAction>.Reduce);
         var method = reducerType.GetMethod(reduceMethodName)!;
-        var stateType = method.ReturnType; // This is TState
         _knownReducersTaskResult[reducerType] = stateType.BuildTaskResultGetter();
         _knownReducersReduceMethod[reducerType] = method.CreateDynamicReflectionInvoker();
         _knownReducers.TryAdd(reducerType, interfaceType);
@@ -115,4 +141,10 @@ internal class StatePulseRegistry : IStatePulseRegistry
             writerParam
         ).Compile();
     }
+
+    public List<ReducerDescriptor> GetReducersByAction(Type actionType)
+        => !_knownReducersByAction.ContainsKey(actionType) ? new() : _knownReducersByAction[actionType].ToList();
+    public List<ReducerDescriptor> GetReducersByState(Type stateType)
+    => !_knownReducersByState.ContainsKey(stateType) ? new() : _knownReducersByState[stateType].ToList();
+
 }
