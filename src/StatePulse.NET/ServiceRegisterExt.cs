@@ -30,6 +30,8 @@ public static class ServiceRegisterExt
         services.AddSingleton<IStatePulseRegistry>(Registry);
         services.AutoRegisterTypes(ConfigureOptions.AutoRegisterTypes);
         services.ScanStatePulseAssemblies(ConfigureOptions.ScanAssemblies);
+
+
         return services;
     }
 

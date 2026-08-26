@@ -21,5 +21,15 @@ public class ConfigureOptions
         var next = Interlocked.Increment(ref _versionTicker);
         return next;
     }
+    public ConfigureOptions ScanAssemblyTypeOf<T>()
+    {
+        ScanAssemblies = [typeof(T).Assembly, .. ScanAssemblies];
+        return this;
+    }
 
+    public ConfigureOptions RegisterTypeOf<T>()
+    {
+        AutoRegisterTypes = [typeof(T), .. AutoRegisterTypes];
+        return this;
+    }
 }
