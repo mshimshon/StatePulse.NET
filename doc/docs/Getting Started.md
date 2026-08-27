@@ -16,7 +16,7 @@ sidebar_position: 1
 
 ## What is StatePulse.NET?
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/6XKSyUe9yOM?si=nnclq5_ap3szxqrT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=rb54UT-oyDs&list=PLDBrEZ3GbZ3k&index=1&t=4s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
 </iframe>
 
 StatePulse.NET is a precision‑engineered state and action management system designed for high‑performance fire‑and‑yield workflows. It supports optional, internally controlled execution ordering when deterministic sequencing is explicitly required.
@@ -25,7 +25,6 @@ A lightweight internal tracking core provides near‑zero‑overhead cancellatio
 Despite these guarantees, StatePulse.NET preserves the flexibility of traditional untracked state management, allowing developers to selectively enforce ordering and reliability without introducing global locks or compromising responsiveness.
 
 # Getting Started
-<iframe width="560" height="315" src="https://www.youtube.com/embed/YkntxdIyZIU?si=pB1MDG549lB4F2T2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Features
 
