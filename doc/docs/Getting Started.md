@@ -15,9 +15,8 @@ sidebar_position: 1
 ### [Official Documentation](https://statepulse.net/)
 
 ## What is StatePulse.NET?
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rb54UT-oyDs?si=Z4YTvKf26BYzEKNA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-<iframe width="560" height="315" src="https://www.youtube.com/watch?v=rb54UT-oyDs&list=PLDBrEZ3GbZ3k&index=1&t=4s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-</iframe>
 
 StatePulse.NET is a precision‑engineered state and action management system designed for high‑performance fire‑and‑yield workflows. It supports optional, internally controlled execution ordering when deterministic sequencing is explicitly required.
 Its multi‑layer anti‑duplication pipeline eliminates redundant dispatches, prevents race conditions, and maintains consistent outcomes even under rapid input or concurrent triggers.
