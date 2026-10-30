@@ -17,9 +17,9 @@ jobs:
       id-token: write
       actions: write
       contents: write
-    if: >-
-      !contains(github.event.head_commit.message, 'trace!') &&
-      !contains(github.event.workflow_run.head_commit.message, 'trace!')
+
+    if: ${{ (!contains(github.event.head_commit.message, 'trace!') && !contains(github.event.workflow_run.head_commit.message, 'trace!'))  }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
