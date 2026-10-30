@@ -1,3 +1,8 @@
 {
-    "dotnet.defaultSolution": "DeployItSmart.slnx"
+    "dotnet.defaultSolution": "StatePulse.NET.sln",
+    "git.showActionButton": {
+        "commit": true,
+        "publish": false,
+        "sync": false,
+    }
 }
