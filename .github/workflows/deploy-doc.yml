@@ -17,6 +17,9 @@ jobs:
     env:
       DOTNET_TEST_RUNNER: Microsoft.Testing.Platform
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       id-token: write
       actions: write
@@ -31,13 +34,6 @@ jobs:
             path: 'main' # Download inside workspace first
             fetch-depth: 0
 
-      - name: Checkout Documentation branch to ./main-doc
-        uses: actions/checkout@v4
-        with:
-            ref: 'main-doc'
-            path: 'doc-checkout' # Download inside workspace first
-            fetch-depth: 0
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -50,37 +46,15 @@ jobs:
             npm ci
             npm run build
 
-      - name: Prepare .doc-dist folder
-        shell: bash
-        run: |
-            if [ -d "./main-doc/.doc-dist" ]; then
-            rm -rf "./main-doc/.doc-dist"
-            fi
-            mkdir -p "./main-doc/.doc-dist"
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
-      - name: Copy build files
-        run: cp -r ./main/doc/build/. ./main-doc/.doc-dist/
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './doc/build'
 
-      - name: Pushing New Documentation
-        shell: bash
-        run: |
-          # Use a subshell to isolate the directory change cleanly
-          (
-            cd ./main-doc || { echo "ERROR: ./main-doc directory not found!"; exit 1; }
-
-            # Crash early and fail the step if the directory is missing its .git tracking
-            if [ ! -d ".git" ]; then
-              echo "ERROR: The target folder is not a valid git repository!"
-              exit 1
-            fi
-
-            if [ -n "$(git status --porcelain .doc-dist)" ]; then
-              echo "Content detected. Committing and force pushing changes..."
-              git add .doc-dist
-              git commit -m "trace!: Update documentation build"
-              git push origin HEAD:main-doc --force
-            else
-              echo "No changes or content detected in .doc-dist. Skipping push."
-            fi
-          )
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
 
