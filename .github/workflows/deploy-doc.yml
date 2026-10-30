@@ -45,7 +45,7 @@ jobs:
         with:
             aws-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-            aws-region: auto # Cloudflare R2 expects us-east-1 or auto, but requires a value
+            aws-region: us-east-1 # Cloudflare R2 expects us-east-1 or auto, but requires a value
 
       - name: Sync and wipe old files on R2
         run: |
