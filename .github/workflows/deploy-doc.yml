@@ -35,18 +35,40 @@ jobs:
             node-version: '>=18.0'
 
       - name: Install dependencies and build
+        shell: bash
         run: |
             cd ./doc
             npm ci
             npm run build
 
-      - name: Sync and wipe old files on R2
-        env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-            AWS_DEFAULT_REGION: us-east-1  # Required dummy value for AWS CLI, Cloudflare ignores it
+      - name: Checkout Documentation branch to /tmp/main-doc
+        uses: actions/checkout@v4
+        with:
+            ref: 'main-doc' # Replace with your target branch name
+            path: '/tmp/main-doc'
+            fetch-depth: 0 # Disables shallow cloning and fetches all history
+
+      - name: Prepare .doc-dist folder
+        shell: bash
         run: |
-            aws s3 sync ./doc/build s3://statepulse-documentation \
-            --endpoint-url ${{ secrets.R2_ENDPOINT }} \
-            --delete
+            if [ -d "/tmp/main-doc/.doc-dist" ]; then
+            rm -rf "/tmp/main-doc/.doc-dist"
+            fi
+            mkdir -p "/tmp/main-doc/.doc-dist"
+
+      - name: Copy build files
+        run: cp -r ./doc/build/. /tmp/main-doc/.doc-dist/
+
+      - name: Pushing New Documentation
+        shell: bash
+        run: |
+          cd /tmp/main-doc
+          if [ -n "$(git status --porcelain .doc-dist)" ]; then
+            echo "Content detected. Committing and force pushing changes..."
+            git add .doc-dist
+            git commit -m "trace!: Update documentation build"
+            git push origin HEAD:main-doc --force
+          else
+            echo "No changes or content detected in .doc-dist. Skipping push."
+          fi
 
