@@ -41,6 +41,14 @@ jobs:
             npm ci
             npm run build
 
+      - name: Prepare .doc-dist folder
+        shell: bash
+        run: |
+            if [ -d "/tmp/main-doc" ]; then
+            rm -rf "/tmp/main-doc"
+            fi
+            mkdir -p "/tmp/main-doc"
+
       - name: Checkout Documentation branch to /tmp/main-doc
         uses: actions/checkout@v4
         with:
