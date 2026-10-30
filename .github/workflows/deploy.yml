@@ -1,27 +1,30 @@
-name: Deploy
+name: Release
+
 on:
   workflow_run:
-    workflows: ["Build"]
+    workflows: ["Build"] # 👈 Put the EXACT name of your build workflow here
     types:
       - completed
-  workflow_dispatch:
+  workflow_dispatch: # Keeps your manual trigger working
 
 concurrency:
   group: deploy-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
-  deploy-abstraction:
+  release:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
+    environment:
+      name: production
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       id-token: write
-      contents: read
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       startsWith(github.event.workflow_run.head_branch, 'refs/tags/v'))
+      actions: write
+      contents: write
+
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4

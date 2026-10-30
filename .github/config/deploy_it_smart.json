@@ -1,0 +1,44 @@
+﻿{
+  "InitialVersion": "3.1.1",
+  "EmptyLogMessage": "This release has no information.",
+  "FeatureHeader": "New Features",
+  "BreakingHeader": "BREAKING CHANGES",
+  "FixHeader": "Fixes",
+  "NoteHeader": "Notes",
+  "SponsorHeader": "Release Sponsors",
+  "ThanksHeader": "Special Thanks",
+  "Projects": {
+    "_": "My Project Name"
+  },
+  "TagMarkdown": {
+    "@": "[{this}](https://github.com/{this})"
+  },
+  "ReleaseFeatureTokens": [
+    "feat"
+  ],
+  "ReleaseFixTokens": [
+    "fix"
+  ],
+  "ReleaseBreakingTokens": [
+    "feat!",
+    "break"
+  ],
+  "ReleaseNoteTokens": [
+    "note"
+  ],
+  "ReleaseSponsorTokens": [
+    "sponsor"
+  ],
+  "ReleaseThanksTokens": [
+    "thank"
+  ],
+  "ReleaseDirtyTokens": [
+    "wip"
+  ],
+  "ReleaseNoTriggerTokens": [
+    "trace!"
+  ],
+  "ReleaseNoLogTokens": [
+    "trace"
+  ]
+}
