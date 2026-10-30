@@ -21,8 +21,10 @@ jobs:
       !contains(github.event.head_commit.message, 'trace!') &&
       !contains(github.event.workflow_run.head_commit.message, 'trace!')
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
