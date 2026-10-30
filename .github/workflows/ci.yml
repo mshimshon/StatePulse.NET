@@ -88,13 +88,14 @@ jobs:
       - name: Restore Dependencies
         run: |
           dotnet restore "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj"
-          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj"
+          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj"
           dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj"
           dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj"
 
       - name: Build All Projects
         run: |
           dotnet build "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj" -c Release --no-restore --verbosity normal
+          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj" -c Release --no-restore --verbosity normal
           dotnet build "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj" -c Release --no-restore --verbosity normal
           dotnet build "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj" -c Release --no-restore --verbosity normal
 
