@@ -31,7 +31,7 @@ jobs:
             path: 'main' # Download inside workspace first
             fetch-depth: 0
 
-      - name: Checkout Documentation branch to /tmp/clone/main-doc
+      - name: Checkout Documentation branch to ./main-doc
         uses: actions/checkout@v4
         with:
             ref: 'main-doc'
@@ -64,13 +64,23 @@ jobs:
       - name: Pushing New Documentation
         shell: bash
         run: |
-          cd ./main-doc
-          if [ -n "$(git status --porcelain .doc-dist)" ]; then
-            echo "Content detected. Committing and force pushing changes..."
-            git add .doc-dist
-            git commit -m "trace!: Update documentation build"
-            git push origin HEAD:main-doc --force
-          else
-            echo "No changes or content detected in .doc-dist. Skipping push."
-          fi
+          # Use a subshell to isolate the directory change cleanly
+          (
+            cd ./main-doc || { echo "ERROR: ./main-doc directory not found!"; exit 1; }
+
+            # Crash early and fail the step if the directory is missing its .git tracking
+            if [ ! -d ".git" ]; then
+              echo "ERROR: The target folder is not a valid git repository!"
+              exit 1
+            fi
+
+            if [ -n "$(git status --porcelain .doc-dist)" ]; then
+              echo "Content detected. Committing and force pushing changes..."
+              git add .doc-dist
+              git commit -m "trace!: Update documentation build"
+              git push origin HEAD:main-doc --force
+            else
+              echo "No changes or content detected in .doc-dist. Skipping push."
+            fi
+          )
 
