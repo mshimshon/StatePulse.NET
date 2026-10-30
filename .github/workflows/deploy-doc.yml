@@ -46,7 +46,7 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
             AWS_DEFAULT_REGION: us-east-1  # Required dummy value for AWS CLI, Cloudflare ignores it
         run: |
-            aws s3 sync ./doc/dist s3://your-bucket-name \
+            aws s3 sync ./doc/build s3://statepulse-documentation \
             --endpoint-url ${{ secrets.R2_ENDPOINT }} \
             --delete
 
