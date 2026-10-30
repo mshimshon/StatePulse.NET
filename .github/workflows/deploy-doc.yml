@@ -12,14 +12,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     env:
       DOTNET_TEST_RUNNER: Microsoft.Testing.Platform
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: "https://statepulse.net"
     permissions:
       id-token: write
       actions: read
