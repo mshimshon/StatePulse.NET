@@ -27,7 +27,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+            ref: 'main'
+            path: 'main' # Download inside workspace first
+            fetch-depth: 0
+
+      - name: Checkout Documentation branch to /tmp/clone/main-doc
+        uses: actions/checkout@v4
+        with:
+            ref: 'main-doc'
+            path: 'doc-checkout' # Download inside workspace first
+            fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,40 +46,25 @@ jobs:
       - name: Install dependencies and build
         shell: bash
         run: |
-            cd ./doc
+            cd ./main/doc
             npm ci
             npm run build
-
-      - name: Prepare /tmp/clone folder
-        shell: bash
-        run: |
-            if [ -d "/tmp/clone" ]; then
-            rm -rf "/tmp/clone"
-            fi
-            mkdir -p "/tmp/clone"
-
-      - name: Checkout Documentation branch to /tmp/clone/main-doc
-        uses: actions/checkout@v4
-        with:
-            ref: 'main-doc' # Replace with your target branch name
-            path: '/tmp/clone'
-            fetch-depth: 0 # Disables shallow cloning and fetches all history
 
       - name: Prepare .doc-dist folder
         shell: bash
         run: |
-            if [ -d "/tmp/clone/main-doc/.doc-dist" ]; then
-            rm -rf "/tmp/clone/main-doc/.doc-dist"
+            if [ -d "./main-doc/.doc-dist" ]; then
+            rm -rf "./main-doc/.doc-dist"
             fi
-            mkdir -p "/tmp/clone/main-doc/.doc-dist"
+            mkdir -p "./main-doc/.doc-dist"
 
       - name: Copy build files
-        run: cp -r ./doc/build/. /tmp/clone/main-doc/.doc-dist/
+        run: cp -r ./main/doc/build/. ./main-doc/.doc-dist/
 
       - name: Pushing New Documentation
         shell: bash
         run: |
-          cd /tmp/clone/main-doc
+          cd ./main-doc
           if [ -n "$(git status --porcelain .doc-dist)" ]; then
             echo "Content detected. Committing and force pushing changes..."
             git add .doc-dist
