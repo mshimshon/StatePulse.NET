@@ -18,32 +18,102 @@ jobs:
       contents: read
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && 
-       github.event.workflow_run.conclusion == 'success' && 
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        startsWith(github.event.workflow_run.head_branch, 'refs/tags/v'))
-    
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: | 
+          dotnet-version: |
             8.0.x
             9.0.x
             10.0.x
-      
-      - name: Restore dependencies
+      - name: Installing Deploy It Smart
         run: |
-          dotnet restore src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj
-          dotnet restore src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj
-      
-      - name: Build StatePulse.Net.Abstractions
+          dotnet tool install -g DeployItSmart
+
+      - name: Get Last Version Tag
+        id: get_last_version
+        shell: bash
         run: |
-          dotnet build src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj -c Release --no-restore
-          dotnet build src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-restore
-      
-      - name: Pack StatePulse.Net.Abstractions
-        run: dotnet pack src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj -c Release --no-build -o ./artifacts
+          # 1. Run the command and capture the text output
+          OUTPUT=$(depitsmart GetCurrentReleaseVersionRunner) || EXIT_CODE=$?
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::Script failed with unexpected exit code: $EXIT_CODE"
+            exit "$EXIT_CODE"
+          fi
+          LATEST_TAG=$(echo "$OUTPUT" | tr -d '\r' | tail -n 1 | xargs)
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Calculate Version
+        id: get_version
+        shell: bash
+        run: |
+          OUTPUT=$(depitsmart CalculateNextReleaseVersionRunner) || EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::error::Script failed with unexpected exit code: $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
+          echo "Log: Successfully generated version number -> '$OUTPUT'"
+          echo "version=$OUTPUT" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        shell: bash
+        run: |
+          LATEST_TAG="${{ steps.get_last_version.outputs.tag }}"
+          VERSION="${{ steps.get_version.outputs.version }}"
+          mkdir -p "/tmp/artifacts/output"
+          OUTPUT="/tmp/artifacts/output"
+          depitsmart GenerateChangeLogRunner -output "$OUTPUT" -linkCommits
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::error::Script failed with unexpected exit code: $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
+
+          CHANGELOG_FILE="$OUTPUT/_.md"
+
+          if [ ! -f "$CHANGELOG_FILE" ]; then
+            echo "::error::Required file _.md was not found in $OUTPUT"
+            exit 1
+          elif [ ! -s "$CHANGELOG_FILE" ]; then
+            echo "::error::The changelog file _.md exists but it is completely empty!"
+            exit 1
+          fi
+          mv "$CHANGELOG_FILE" "$OUTPUT/changelog.md"
+
+      - name: Restore Dependencies
+        run: |
+          dotnet restore "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj"
+          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj"
+          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj"
+          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj"
+
+      - name: Build All Projects
+        run: |
+          dotnet build "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj" -c Release --no-restore --verbosity normal
+          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj" -c Release --no-restore --verbosity normal
+          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj" -c Release --no-restore --verbosity normal
+
+      - name: Pack NuGet packages
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          mkdir -p "/tmp/artifacts/output"
+          dotnet pack "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj" -c Release -o "/tmp/artifacts/output" -p:Version=$VERSION
+          dotnet pack "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj" -c Release -o "/tmp/artifacts/output" -p:Version=$VERSION
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          body_path: /tmp/artifacts/output/changelog.md
+          files: |
+            /tmp/artifacts/output/*.*
 
       - name: NuGet login (OIDC → temp API key)
         uses: NuGet/login@v1
@@ -51,74 +121,18 @@ jobs:
         with:
           user: ${{ secrets.NUGET_USER }}
 
-      - name: Push StatePulse.Net.Abstractions
-        run: dotnet nuget push ./artifacts/StatePulse.Net.Abstractions.*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-      - name: Get package version
-        id: get_version
-        run: |
-          FILE=$(ls ./artifacts/*.nupkg | head -n1)
-          VERSION=$(basename "$FILE" | sed -E 's/^.*\.([0-9]+\.[0-9]+\.[0-9]+).*\.nupkg$/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Wait for NuGet availability
+      - name: Push all NuGet packages with retry
         uses: nick-invision/retry@v2
         with:
-          timeout_minutes: 10
+          timeout_minutes: 30
+          max_attempts: 10
           retry_wait_seconds: 10
-          max_attempts: 60
           command: |
-            VERSION="${{ steps.get_version.outputs.version }}"
-            echo "VERSION=>>${{ steps.get_version.outputs.version }}<<"
+            for PKG in /tmp/artifacts/output/*.nupkg; do
+              echo "Pushing $PKG"
 
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              "https://api.nuget.org/v3/registration5-gz-semver2/statepulse.net.abstractions/${VERSION}.json")
-
-            # NuGet returns 200 if version exists, 404 if not 
-            [ "$STATUS" -eq 200 ] || exit 1
-
-
-  deploy-core:
-    needs: deploy-abstraction
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && 
-       github.event.workflow_run.conclusion == 'success' && 
-       github.event.workflow_run.event == 'push' &&
-       startsWith(github.event.workflow_run.head_branch, 'refs/tags/v'))
-    
-    steps:
-
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: | 
-            8.0.x
-            9.0.x
-            10.0.x
-      
-      - name: Restore dependencies
-        run: |
-          dotnet restore src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj
-          dotnet restore src/StatePulse.NET/StatePulse.NET.csproj
-      
-      - name: Build StatePulse.NET
-        run: |
-          dotnet build src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj -c Release --no-restore
-          dotnet build src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-restore
-      
-      - name: Pack StatePulse.NET
-        run: dotnet pack src/StatePulse.NET/StatePulse.NET.csproj -c Release --no-build -o ./artifacts
-
-      - name: NuGet login (OIDC → temp API key)
-        uses: NuGet/login@v1
-        id: login
-        with:
-          user: ${{ secrets.NUGET_USER }}
-
-      - name: Push StatePulse.NET
-        run: dotnet nuget push ./artifacts/StatePulse.NET.*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+              dotnet nuget push "$PKG" \
+                --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+                --source https://api.nuget.org/v3/index.json \
+                --skip-duplicate || exit 1
+            done

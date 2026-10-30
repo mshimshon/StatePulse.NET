@@ -18,10 +18,10 @@
 	</PropertyGroup>
 
 
-	
+
 	<ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageReference Include="Fluxor" Version="6.9.0" />
+    <PackageReference Include="Fluxor" Version="6.11.0" />
   </ItemGroup>
 
   <ItemGroup>
