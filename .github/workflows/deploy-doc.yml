@@ -24,23 +24,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Restore Dependencies
-        run: |
-          dotnet restore "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj"
-          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj"
-          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj"
-          dotnet restore "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj"
 
-      - name: Build All Projects
-        run: |
-          dotnet build "$GITHUB_WORKSPACE/tests/StatPulse.NET.Tests/StatePulse.NET.Tests.csproj" -c Release --no-restore --verbosity normal
-          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.Net.Analyzers/StatePulse.Net.Analyzers.csproj" -c Release --no-restore --verbosity normal
-          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj" -c Release --no-restore --verbosity normal
-          dotnet build "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj" -c Release --no-restore --verbosity normal
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+            node-version: '>=18.0'
 
-      - name: Pack NuGet packages
+      - name: Install dependencies and build
         run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          mkdir -p "/tmp/artifacts/output"
-          dotnet pack "$GITHUB_WORKSPACE/src/StatePulse.NET/StatePulse.NET.csproj" -c Release -o "/tmp/artifacts/output" -p:Version=$VERSION
-          dotnet pack "$GITHUB_WORKSPACE/src/StatePulse.Net.Abstractions/StatePulse.Net.Abstractions.csproj" -c Release -o "/tmp/artifacts/output" -p:Version=$VERSION
+            cd ./doc
+            npm ci
+            npm run build
+
+      - name: Configure AWS credentials for Cloudflare R2
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            aws-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+            aws-region: auto # Cloudflare R2 expects us-east-1 or auto, but requires a value
+
+      - name: Sync and wipe old files on R2
+        run: |
+            aws s3 sync ./doc/build s3://statepulse-documentation \
+            --endpoint-url ${{ secrets.R2_ENDPOINT }} \
+            --delete
+
