@@ -40,16 +40,13 @@ jobs:
             npm ci
             npm run build
 
-      - name: Configure AWS credentials for Cloudflare R2
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-            aws-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1 # Cloudflare R2 expects us-east-1 or auto, but requires a value
-
       - name: Sync and wipe old files on R2
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+            AWS_DEFAULT_REGION: us-east-1  # Required dummy value for AWS CLI, Cloudflare ignores it
         run: |
-            aws s3 sync ./doc/build s3://statepulse-documentation \
+            aws s3 sync ./doc/dist s3://your-bucket-name \
             --endpoint-url ${{ secrets.R2_ENDPOINT }} \
             --delete
 
