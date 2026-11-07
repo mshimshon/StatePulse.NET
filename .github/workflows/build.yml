@@ -1,0 +1,88 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      id-token: write
+      contents: read
+    if: >-
+      !contains(github.event.head_commit.message, 'skipci~') &&
+      !contains(github.event.workflow_run.head_commit.message, 'skipci~')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 👈 This forces GitHub to pull ALL history and tags
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: Installing Deploy It Smart
+        shell: bash
+        run: |
+          dotnet tool install -g DeployItSmart
+          which depitsmart || true
+          echo "/root/.dotnet/tools" >> $GITHUB_PATH
+          mkdir -p /tmp/artifacts/output
+
+
+      - name: Get Last Version Tag
+        id: version_control
+        shell: bash
+        run: |
+          depitsmart GetCurrentReleaseVersionRunner --ghOutput
+          depitsmart CalculateNextReleaseVersionRunner --ghOutput
+          if [ "${{ github.ref_name }}" = "main-dev" ]; then
+            depitsmart GetCurrentPreReleaseVersionRunner --ghOutput --previewMark "rc" --isFirstRelease
+            depitsmart CalculateNextReleaseVersionRunner --ghOutput --previewMode --previewMark "rc" --isFirstRelease
+          fi
+
+      - name: Generate Release Notes
+        shell: bash
+        run: |
+          depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits
+          if [ "${{ github.ref_name }}" = "main-dev" ]; then
+            depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits --previewMode --previewMark "rc"
+          fi
+
+      - name: Compiling Software
+        run: bash -e .github/workflows/composition/compiling.sh
+        env:
+          VERSION_NEXT: ${{ steps.version_control.outputs.version_next }}
+          BRANCH:  ${{ github.ref_name == 'main-dev' }}
+          VERSION_NEXT_PREVIEW: ${{steps.version_control.outputs.version_next_preview}}
+
+      - name: Save Variables for Deploy
+        shell: bash
+        run: |
+          echo "version_next=${{ steps.version_control.outputs.version_next }}" >> /tmp/artifacts/output/build.env
+          echo "version_current=${{ steps.version_control.outputs.version_current }}" >> /tmp/artifacts/output/build.env
+          echo "trigger_branch=${{ github.ref_name }}" >> /tmp/artifacts/output/build.env
+          if [ "${{ github.ref_name }}" = "main-dev" ]; then
+            echo "version_current_preview=${{ steps.version_control.outputs.version_current_preview }}" >> /tmp/artifacts/output/build.env
+            echo "version_next_preview=${{ steps.version_control.outputs.version_next_preview }}" >> /tmp/artifacts/output/build.env
+          fi
+          ls -laR /tmp/artifacts/output || echo "no /tmp/artifacts/output"
+
+      - name: Upload Build Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-assets # Label
+          path: /tmp/artifacts/output/

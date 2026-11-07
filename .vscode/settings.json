@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "StatePulse.NET.sln",
+    "dotnet.defaultSolution": "src/StatePulse.NET.sln",
     "git.showActionButton": {
         "commit": true,
         "publish": false,
