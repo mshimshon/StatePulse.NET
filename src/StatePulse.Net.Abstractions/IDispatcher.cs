@@ -12,5 +12,5 @@ public interface IDispatcher
     [Obsolete("Use Prepared instead.")]
     IDispatcherPrepper<TAction> Prepare<TAction>(Func<TAction> createInstance) where TAction : IAction;
     IDispatcherPrepper<TAction> Prepared<TAction>(TAction instance) where TAction : IAction;
-
+    T GetState<T>() where T : IStateFeature;
 }

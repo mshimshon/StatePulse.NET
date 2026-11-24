@@ -40,6 +40,17 @@ public class StatePulseInitTests : TestBase
 
         Assert.Equal("Maksim Shimshon", stateAccessor.State.ProfileName);
     }
+
+
+    [Fact]
+    public async Task DispatchingActionShouldChangeState_InspectUsingGetState()
+    {
+        var dispatcher = ServiceProvider.GetRequiredService<IDispatcher>();
+        var action = new ProfileCardDefineAction();
+        await dispatcher.Prepare(() => action).Await().DispatchAsync();
+
+        Assert.Equal("Maksim Shimshon", dispatcher.GetState<ProfileCardState>().ProfileName);
+    }
     public Task OnUpdate() => Task.CompletedTask;
     // Testing action dispatch
     [Fact]
@@ -147,7 +158,7 @@ public class StatePulseInitTests : TestBase
         int[] timing = [
             51, // Entry
             22, // Cancels 0
-            73, // 
+            73, //
             54,
             25,
             56,
