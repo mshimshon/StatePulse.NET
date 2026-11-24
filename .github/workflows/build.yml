@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-
-  workflow_dispatch:
+  workflow_dispatch: # Keeps your manual trigger working
 
 concurrency:
   group: deploy-${{ github.sha }}
@@ -19,14 +18,35 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    if: >-
-      !contains(github.event.head_commit.message, 'skipci~') &&
-      !contains(github.event.workflow_run.head_commit.message, 'skipci~')
+
+    if: |
+          contains(github.event.head_commit.message || github.event.workflow_run.head_commit.message, 'release~')
+          ||
+          contains(github.event.head_commit.message || github.event.workflow_run.head_commit.message, 'preview~')
+
     steps:
+      - name: Detect target
+        id: target
+        shell: bash
+        run: |
+          MSG="${{ github.event.head_commit.message || github.event.workflow_run.head_commit.message }}"
+          if [[ "$MSG" == *"release~"* ]]; then
+            echo "channel=release" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel=preview" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # 👈 This forces GitHub to pull ALL history and tags
+
+      - name: Installing libicu Dependency!
+        if: ${{ env.ACT }}
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y libicu-dev
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v4
@@ -43,43 +63,59 @@ jobs:
           mkdir -p /tmp/artifacts/output
 
 
-      - name: Get Last Version Tag
+      # --ghOutput makes the cli assign GITHUB variable by itself
+      - name: Calculating Versions
         id: version_control
         shell: bash
         run: |
           depitsmart GetCurrentReleaseVersionRunner --ghOutput
-          depitsmart CalculateNextReleaseVersionRunner --ghOutput
-          if [ "${{ github.ref_name }}" = "main-dev" ]; then
-            depitsmart GetCurrentPreReleaseVersionRunner --ghOutput --previewMark "rc" --isFirstRelease
-            depitsmart CalculateNextReleaseVersionRunner --ghOutput --previewMode --previewMark "rc" --isFirstRelease
+          if [ "${{ steps.target.outputs.channel }}" = "preview" ]; then
+            echo "Preview Version"
+            depitsmart GetCurrentPreReleaseVersionRunner --ghOutput
+            depitsmart CalculateNextReleaseVersionRunner --ghOutput --previewMode
+          elif [ "${{ steps.target.outputs.channel }}" = "release" ]; then
+            echo "Release deploy"
+            depitsmart CalculateNextReleaseVersionRunner --ghOutput
           fi
+
+      - name: Building Output
+        shell: bash
+        run: bash -e .github/workflows/composition/producing_output.sh
+        env:
+          VERSION_NEXT: ${{ steps.version_control.outputs.version_either }}
+          VERSION_NOSUFFIX: ${{ steps.version_control.outputs.version_next_preview_v }}
+          BRANCH:  ${{ github.ref_name }}
 
       - name: Generate Release Notes
+        if: steps.target.outputs.channel == 'release'
         shell: bash
-        run: |
-          depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits
-          if [ "${{ github.ref_name }}" = "main-dev" ]; then
-            depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits --previewMode --previewMark "rc"
-          fi
+        run: depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits
 
-      - name: Compiling Software
-        run: bash -e .github/workflows/composition/compiling.sh
-        env:
-          VERSION_NEXT: ${{ steps.version_control.outputs.version_next }}
-          BRANCH:  ${{ github.ref_name == 'main-dev' }}
-          VERSION_NEXT_PREVIEW: ${{steps.version_control.outputs.version_next_preview}}
+      - name: Generate Preview Notes
+        if: steps.target.outputs.channel == 'preview'
+        shell: bash
+        run: depitsmart GenerateChangeLogRunner --output "/tmp/artifacts/output"  --linkCommits --previewMode
+
+      - name: Run All Unit Tests
+        run: dotnet test "./src/StatePulse.NET.sln" --no-build --configuration Release -p:TreatWarningsAsErrors=false
 
       - name: Save Variables for Deploy
         shell: bash
         run: |
-          echo "version_next=${{ steps.version_control.outputs.version_next }}" >> /tmp/artifacts/output/build.env
-          echo "version_current=${{ steps.version_control.outputs.version_current }}" >> /tmp/artifacts/output/build.env
+          mkdir -p /tmp/artifacts/output
+          echo "version_next=${{ steps.version_control.outputs.version_either }}" >> /tmp/artifacts/output/build.env
           echo "trigger_branch=${{ github.ref_name }}" >> /tmp/artifacts/output/build.env
-          if [ "${{ github.ref_name }}" = "main-dev" ]; then
-            echo "version_current_preview=${{ steps.version_control.outputs.version_current_preview }}" >> /tmp/artifacts/output/build.env
-            echo "version_next_preview=${{ steps.version_control.outputs.version_next_preview }}" >> /tmp/artifacts/output/build.env
-          fi
+          echo "channel=${{ steps.target.outputs.channel }}" >> /tmp/artifacts/output/build.env
           ls -laR /tmp/artifacts/output || echo "no /tmp/artifacts/output"
+
+      - name: Validating Output
+        shell: bash
+        run: bash -e .github/workflows/composition/validate_output.sh
+        env:
+          VERSION_NEXT: ${{ steps.version_control.outputs.version_either }}
+          VERSION_NOSUFFIX: ${{ steps.version_control.outputs.version_next_preview_v }}
+          BRANCH:  ${{ github.ref_name }}
+
 
       - name: Upload Build Output
         uses: actions/upload-artifact@v4

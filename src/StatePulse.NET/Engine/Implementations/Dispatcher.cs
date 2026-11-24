@@ -1,4 +1,6 @@
-﻿namespace StatePulse.Net.Engine.Implementations;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace StatePulse.Net.Engine.Implementations;
 
 internal class Dispatcher : IDispatcher, IDispatchHandler
 {
@@ -18,6 +20,9 @@ internal class Dispatcher : IDispatcher, IDispatchHandler
     {
         _serviceProvider = serviceProvider;
     }
+
+    public T GetState<T>() where T : IStateFeature
+        => _serviceProvider.GetRequiredService<IStateAccessor<T>>().State;
 
     public void MaintainChainKey(DispatchTrackingIdentity chainKey)
     {

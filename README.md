@@ -2,7 +2,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![NuGet Version](https://img.shields.io/nuget/v/StatePulse.Net)](https://www.nuget.org/packages/StatePulse.NET)
 [![](https://img.shields.io/nuget/dt/StatePulse.NET?label=Downloads)](https://www.nuget.org/packages/StatePulse.NET)
-[![Build](https://github.com/mshimshon/StatePulse.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/mshimshon/StatePulse.NET/actions/workflows/ci.yml)
+[![Build](https://github.com/mshimshon/StatePulse.NET/actions/workflows/build.yml/badge.svg)](https://github.com/mshimshon/StatePulse.NET/actions/workflows/build.yml)
 [![Deploy](https://github.com/mshimshon/StatePulse.NET/actions/workflows/deploy.yml/badge.svg)](https://github.com/mshimshon/StatePulse.NET/actions/workflows/deploy.yml)
 
 # StatePulse.NET
@@ -23,20 +23,20 @@ Despite these guarantees, StatePulse.NET preserves the flexibility of traditiona
 
 ## Features
 
-**Fast Fire-and-Yield**  
+**Fast Fire-and-Yield**
 Executes actions immediately, including tracked actions, while preserving fire-and-yield semantics.
 
 **Multi-Layer Anti-Duplicate Dispatching**
 Layer 1: Cancels previously dispatched duplicates before effects, between effects, or after effects, ensuring no redundant action progresses through the pipeline.
 Layer 2: Uses a global state-change ticker enforcing a strict “latest action wins” rule so outdated or superseded actions cannot update state.
 
-**Effect Validator System**  
+**Effect Validator System**
 Supports multiple, composable validators for modular and reusable rule enforcement.
 
-**Synchronous Debug Mode**  
+**Synchronous Debug Mode**
 Provides an optional lockstep execution mode ideal for testing, diagnostics, and `Task.WhenAll` based pipelines.
 
-**DispatchTracker**  
+**DispatchTracker**
 Offers high-performance cancellation, deduplication, and concurrency control through an optimized tracking mechanism.
 
 **Short-Lived Middlewares**
@@ -54,16 +54,16 @@ Runs Before and After the reducer, enabling patterns such as event dispatch on s
 
 ### 🚀 **State Management with Zero Boilerplate and Zero Compromises**
 
-- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this, TaskMethod)` to get scoped state access.  
-- **Component-Scoped Event Listening:** Automatically registers event listeners only for that component, ensuring `StateHasChanged()` is called exclusively on components subscribed to state changes.  
-- **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.  
-- **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.  
+- **Lazy State Access Model:** Inject `IStatePulse` directly into your Blazor component and call `StateOf<TState>(()=>this, TaskMethod)` to get scoped state access.
+- **Component-Scoped Event Listening:** Automatically registers event listeners only for that component, ensuring `StateHasChanged()` is called exclusively on components subscribed to state changes.
+- **No Base Classes or Global Event Listeners:** Avoids global re-renders and boilerplate base class inheritance, giving you fine-grained control over component rendering and event subscription without forcing you into base classes.
+- **Automatic Listener Disposal:** Event listeners are automatically tracked and disposed with the component lifecycle, preventing memory leaks and dangling references.
 - **Transient `IStatePulse` Service:** Each component gets its own `IStatePulse` instance, isolating event subscriptions and making state updates scoped and efficient.
 
 
 ## Benchmark
-| Method                       | Mean       | Error     | StdDev     | Median     |
-|----------------------------- |-----------:|----------:|-----------:|-----------:|
+| Method                       |       Mean |     Error |     StdDev |     Median |
+| ---------------------------- | ---------: | --------: | ---------: | ---------: |
 | StatePulse_Dispatch          |   2.240 μs | 0.0405 μs |  0.0720 μs |   2.208 μs |
 | StatePulse_SafeDispatch      |   2.802 μs | 0.0556 μs |  0.1512 μs |   2.744 μs |
 | StatePulse_BusrtDispatch     | 232.678 μs | 5.4732 μs | 15.8789 μs | 227.091 μs |
@@ -84,7 +84,7 @@ dotnet add package StatePulse.Net
 
 ### 3 Ways to Register Services
 
-**Method 1**  
+**Method 1**
 The most deterministic and explicit registration approach. This method avoids “magic” and one‑liners by requiring you to manually add all Reducers, Effects, Middlewares, Validators, and Actions. It provides full clarity and control over what the system loads.
 
 ```csharp
@@ -120,7 +120,7 @@ The most deterministic and explicit registration approach. This method avoids �
     });
 ```
 
-**Method 2**  
+**Method 2**
 This is also very explicit since v2+ we have a single entry `AddStatePulseService` for all statepulse types (Reducers, Effects, Middlewares, Validators, and Actions).
 
 ```csharp
@@ -303,17 +303,17 @@ public partial class CounterView : ComponentBase
     [Inject] public IStatePulse PulseState { get; set; } = default!; // Handles State Accessor
 
     // This is for convienience always use this method or directly PulseState.StateOf<CounterState>(this).Value
-    // Never assign State Instance variable as it will not update... 
+    // Never assign State Instance variable as it will not update...
     // Never use lambda it will throw exception as WeakREference is fundamatally flawed and disposes of lambda even when its object is alive.
     private CounterState state => PulseState.StateOf<CounterState>(()=>this, OnUpdate);
-    
+
     private async Task OnUpdate() => await InvokeAsync(StateHadChanged);
 
-    // METHOD 2: 
+    // METHOD 2:
     // Inject direct state but injecting the state directly requires you to handle onchanged events by sub/unsub in lifecycle
     // Or to create a basecomponent system similar to other state management systems.
-    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!; 
+    [Inject] public IStateAccessor<CounterState> State { get; set; } = default!;
 
-    
+
 }
 ```

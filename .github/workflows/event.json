@@ -1,4 +1,7 @@
 {
+    "head_commit": {
+        "message": "release~"
+    },
     "workflow_dispatch": {
         "id": 1,
         "conclusion": "success",
